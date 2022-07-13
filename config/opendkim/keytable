@@ -1,0 +1,1 @@
+${POCKER_SUBDOMAIN}._domainkey.${POCKER_DOMAIN} ${POCKER_DOMAIN}:${POCKER_SUBDOMAIN}:/etc/opendkim/keys/${POCKER_SUBDOMAIN}.private

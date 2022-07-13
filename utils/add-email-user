@@ -1,0 +1,63 @@
+#!/bin/sh
+
+USAGE="Usage: $0 <user>";
+
+if [ -z "$1" ]; then
+    echo $USAGE;
+    exit 1
+fi
+
+###################################
+## VARIABLES                     ##
+###################################
+USERNAME=$1;
+LARGEST_ID="$(cat /etc/passwd | sed "/nobody/ s/.*//g" | cut -d ":" -f 3 | sort -n | tail -n 1)"
+UID="$(expr $LARGEST_ID + 1)"
+
+echo "info: creating user: $USERNAME"
+
+###################################
+## USER RECORDS                  ##
+###################################
+# /etc/passwd
+if ! (grep -q "^$USERNAME:" /etc/passwd); then
+    echo "$USERNAME:x:$UID:$UID::/nonexistent:/bin/sh" >> /etc/passwd
+fi
+
+# /etc/group - create
+if ! (grep -q "^$USERNAME:" /etc/group); then
+    echo "$USERNAME:x:$UID:" >> /etc/group
+fi
+
+# /etc/group - add to mail group
+if ! (grep -q "^mail:x:.*$USERNAME" /etc/group); then
+    TEMP="$(mktemp)"
+
+    # add a comma if someone is already in the group
+    INSERT_STRING="$USERNAME"
+    if [ -n "$(grep "^mail:x:" /etc/group | cut -d ":" -f 4)" ]; then
+        INSERT_STRING=",$USERNAME"
+    fi
+
+    sed "/mail:x:/ s/$/,$USERNAME/g" /etc/group > $TEMP
+    cat "$TEMP" > /etc/group
+fi
+
+# /etc/shadow
+if ! (grep -q "^$USERNAME:" /etc/shadow); then
+    ORIGINAL_SHADOW="$(readlink /etc/shadow)"
+    passwd $USERNAME
+    if [ "$?" -ne 0 ]; then
+        echo "error: password creation failed. Run the command again"
+        exit 1
+    fi
+
+    # passwd command replaces the symlink, so we must restore it
+    cat /etc/shadow > $ORIGINAL_SHADOW
+    ln -sf $ORIGINAL_SHADOW /etc/shadow
+fi
+
+# /etc/gshadow
+if ! (grep -q "^$USERNAME:" /etc/gshadow); then
+    echo "$USERNAME:!::" >> /etc/gshadow
+fi

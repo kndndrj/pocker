@@ -1,0 +1,24 @@
+---
+version: '3.3'
+
+services:
+  mailserver:
+    image: mail-andrej:latest
+    container_name: mail
+    ports:
+      - "25:25"
+      - "465:465"
+      - "993:993"
+      - "587:587"
+    volumes:
+      # Letsencrypt certs
+      - "/etc/letsencrypt:/etc/letsencrypt:ro"
+      # Mail direcotry
+      - "./data/mailserver/mail/:/var/mail"
+      # User data
+      - "./data/mailserver/users:/etc/mounted_users"
+      # opendkim keys
+      - "./data/mailserver/keys:/etc/opendkim/keys"
+    environment:
+      - SUBDOMAIN=mail
+      - DOMAIN=example.com
