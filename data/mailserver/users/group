@@ -6,7 +6,7 @@ adm:x:4:
 tty:x:5:
 disk:x:6:
 lp:x:7:
-mail:x:8:,miha
+mail:x:8:dmarc
 news:x:9:
 uucp:x:10:
 man:x:12:

@@ -19,42 +19,35 @@ fi
 ## OWNERSHIP / PERMISSIONS       ##
 ###################################
 # chown mail directory to mail
-if [ "$(stat --format '%G:%a' /var/mail)" != "mail:2775" ]; then
-    echo "info: Changing ownership of /var/mail"
+echo "info: Changing ownership of /var/mail"
 
-    chgrp mail /var/mail
-    chmod 2775 /var/mail
-    if [ $? -ne 0 ]; then
-        echo "error: Could not change ownership/permissions of /var/mail. Make sure you don't have \":ro\" mount option set!"
-        exit 1
-    fi
+chgrp mail /var/mail
+chmod 2775 /var/mail
+if [ $? -ne 0 ]; then
+    echo "error: Could not change ownership/permissions of /var/mail. Make sure you don't have \":ro\" mount option set!"
+    exit 1
 fi
 
 # chown dkim keys to opendkim
-if [ "$(stat --format '%U:%G:%a' /etc/opendkim/keys/$SUBDOMAIN.private)" != "opendkim:opendkim:640" ]; then
-    echo "info: Changing ownership of dkim keys"
+echo "info: Changing ownership of dkim keys"
 
-    chown -R opendkim:opendkim /etc/opendkim/keys
-    chmod 640 /etc/opendkim/keys/*
-    if [ $? -ne 0 ]; then
-        echo "error: Could not change ownership/permissions of dkim keys. Make sure you don't have \":ro\" mount option set!"
-        exit 1
-    fi
+chown -R opendkim:opendkim /etc/opendkim/keys
+chmod 640 /etc/opendkim/keys/*
+if [ $? -ne 0 ]; then
+    echo "error: Could not change ownership/permissions of dkim keys. Make sure you don't have \":ro\" mount option set!"
+    exit 1
 fi
 
 # chown password files to root
-if [ "$(stat --format '%U:%G:%a' /etc/passwd)" != "root:root:644" ] || [ "$(stat --format '%U:%G:%a' "$(readlink /etc/shadow)")" != "root:shadow:640" ]; then
-    echo "info: Changing ownership of passwd files"
+echo "info: Changing ownership of passwd files"
 
-    chown root:root /etc/passwd /etc/group
-    chown root:shadow /etc/shadow /etc/gshadow
-    chmod 644 /etc/passwd /etc/group
-    chmod 640 /etc/shadow /etc/gshadow
-    if [ $? -ne 0 ]; then
-        echo "error: Could not change ownership/permissions of user passwd files. Make sure you don't have \":ro\" mount option set!"
-        exit 1
-    fi
-        
+chown root:root /etc/passwd /etc/group
+chown root:shadow /etc/shadow /etc/gshadow
+chmod 644 /etc/passwd /etc/group
+chmod 640 /etc/shadow /etc/gshadow
+if [ $? -ne 0 ]; then
+    echo "error: Could not change ownership/permissions of user passwd files. Make sure you don't have \":ro\" mount option set!"
+    exit 1
 fi
 
 ###################################

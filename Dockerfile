@@ -49,11 +49,11 @@ COPY ./config/sieve/ /var/lib/dovecot/sieve/
 RUN sievec /var/lib/dovecot/sieve/*
 
 # link user files
-RUN mkdir -p /etc/mounted_users
-RUN ln -sf /etc/mounted_users/passwd /etc/passwd
-RUN ln -sf /etc/mounted_users/shadow /etc/shadow
-RUN ln -sf /etc/mounted_users/group /etc/group
-RUN ln -sf /etc/mounted_users/gshadow /etc/gshadow
+RUN mkdir -p /etc/userfiles
+RUN ln -sf /etc/userfiles/passwd /etc/passwd
+RUN ln -sf /etc/userfiles/shadow /etc/shadow
+RUN ln -sf /etc/userfiles/group /etc/group
+RUN ln -sf /etc/userfiles/gshadow /etc/gshadow
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

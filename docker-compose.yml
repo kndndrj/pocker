@@ -16,7 +16,7 @@ services:
       # Mail direcotry
       - "./data/mailserver/mail/:/var/mail"
       # User data
-      - "./data/mailserver/users:/etc/mounted_users"
+      - "./data/mailserver/users:/etc/userfiles"
       # opendkim keys
       - "./data/mailserver/keys:/etc/opendkim/keys"
     environment:
