@@ -1,36 +1,44 @@
-#!/bin/bash
+#!/bin/sh
 
-USAGE="Usage: $0 <user>";
+USAGE="Usage: $0 <user> [password]
+       If the password is not defined, you will be prompted for one."
 
 if [ -z "$1" ]; then
-    echo $USAGE;
+    echo "$USAGE"
     exit 1
 fi
 
 ###################################
 ## VARIABLES                     ##
 ###################################
-USERNAME=$1;
+USERNAME="$1"
+PASSWORD="$2"
 LARGEST_ID="$(cat /etc/passwd | sed "/nobody/ s/.*//g" | cut -d ":" -f 3 | sort -n | tail -n 1)"
 USER_ID="$(expr $LARGEST_ID + 1)"
 
 echo "info: creating user: $USERNAME"
 
-# Ask for password here, so we can exit before doing anything
-printf "password for user $USERNAME: "
-read -s PASSWORD
-echo
+# Ask for password here (if not already provided), so we can exit before doing anything
 if [ -z "$PASSWORD" ]; then
-    echo "error: Empty password not allowed. Please try again."
-    exit 1
-fi
+    printf "password for user $USERNAME: "
+    stty -echo
+    read PASSWORD
+    stty echo
+    echo
+    if [ -z "$PASSWORD" ]; then
+        echo "error: Empty password not allowed. Please try again."
+        exit 1
+    fi
 
-printf "confirm password: "
-read -s CONFIRM
-echo
-if [ "$CONFIRM" != "$PASSWORD" ]; then
-    echo "error: Passwords don't match. Please try again."
-    exit 1
+    printf "confirm password: "
+    stty -echo
+    read CONFIRM
+    stty echo
+    echo
+    if [ "$CONFIRM" != "$PASSWORD" ]; then
+        echo "error: Passwords don't match. Please try again."
+        exit 1
+    fi
 fi
 
 ###################################
