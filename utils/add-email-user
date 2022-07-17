@@ -13,8 +13,10 @@ fi
 ###################################
 USERNAME="$1"
 PASSWORD="$2"
-LARGEST_ID="$(cat /etc/passwd | sed "/nobody/ s/.*//g" | cut -d ":" -f 3 | sort -n | tail -n 1)"
+LARGEST_ID="$(cat /etc/passwd | awk -F ":" '$3 >= $4 && $3 < 60000 { print $3 ;} $3 < $4 && $4 < 60000 { print $4 ;}' | sort -n | tail -n 1)"
+[ $LARGEST_ID -lt 1000 ] && LARGEST_ID=1000
 USER_ID="$(expr $LARGEST_ID + 1)"
+USER_HOME="/home/$USERNAME"
 
 echo "info: creating user: $USERNAME"
 
@@ -46,7 +48,7 @@ fi
 ###################################
 # /etc/passwd
 if ! (grep -q "^$USERNAME:" /etc/passwd); then
-    echo "$USERNAME:x:$USER_ID:$USER_ID::/nonexistent:/bin/sh" >> /etc/passwd
+    echo "$USERNAME:x:$USER_ID:$USER_ID::$USER_HOME:/bin/sh" >> /etc/passwd
 fi
 
 # /etc/group - create
@@ -84,3 +86,9 @@ fi
 if ! (grep -q "^$USERNAME:" /etc/gshadow); then
     echo "$USERNAME:!::" >> /etc/gshadow
 fi
+
+###################################
+## HOME DIRECTORY                ##
+###################################
+mkdir -p "$USER_HOME"
+chown -R "$USERNAME:$USERNAME" "$USER_HOME"

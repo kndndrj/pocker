@@ -2,19 +2,53 @@
 version: '3.3'
 
 services:
-  mailserver:
-    image: mail-andrej:latest
-    container_name: mail
+
+
+  traefik:
+    image: "traefik:v2.8"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      #- "--accesslog=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # imap
+      - "--entrypoints.imap.address=:993"
+      - "--entrypoints.imap.proxyprotocol.insecure=true"
+      # smtpsecure
+      - "--entrypoints.smtpsecure.address=:465"
+      - "--entrypoints.smtpsecure.proxyprotocol.insecure=true"
+      # smtp
+      - "--entrypoints.smtp.address=:25"
+      - "--entrypoints.smtp.proxyprotocol.insecure=true"
+      #letsencrypt
+      - "--certificatesresolvers.mailresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.mailresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.mailresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.mailresolver.acme.email=postmaster@example.com"
+      - "--certificatesresolvers.mailresolver.acme.storage=/letsencrypt/acme.json"
     ports:
-      - "25:25"
+      - "80:80"
+      - "8080:8080"
+      - "443:443"
       - "465:465"
+      - "25:25"
       - "993:993"
-      - "587:587"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+
+  mailserver:
+    image: pocker:latest
+    container_name: mail
     volumes:
       # Letsencrypt certs
       - "/etc/letsencrypt:/etc/letsencrypt:ro"
       # Mail direcotry
-      - "./data/mailserver/mail/:/var/mail"
+      - "./data/mailserver/mail:/var/mail"
       # User data
       - "./data/mailserver/users:/etc/userfiles"
       # opendkim keys
@@ -22,3 +56,26 @@ services:
     environment:
       - SUBDOMAIN=mail
       - DOMAIN=example.com
+    labels:
+      - "traefik.enable=true"
+      # imap
+      - "traefik.tcp.routers.imap.entrypoints=imap"
+      - "traefik.tcp.routers.imap.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.imap.service=imap"
+        #- "traefik.tcp.routers.imap.tls.passthrough=true"
+      - "traefik.tcp.services.imap.loadbalancer.server.port=10993"
+      - "traefik.tcp.services.imap.loadbalancer.proxyprotocol.version=2"
+      # smtpsecure
+      - "traefik.tcp.routers.smtpsecure.entrypoints=smtpsecure"
+      - "traefik.tcp.routers.smtpsecure.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.smtpsecure.service=smtpsecure"
+        #- "traefik.tcp.routers.smtpsecure.tls.passthrough=true"
+      - "traefik.tcp.services.smtpsecure.loadbalancer.server.port=10465"
+      - "traefik.tcp.services.smtpsecure.loadbalancer.proxyprotocol.version=2"
+      # smtp
+      - "traefik.tcp.routers.smtp.entrypoints=smtp"
+      - "traefik.tcp.routers.smtp.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.smtp.service=smtp"
+        #"- "traefik.tcp.routers.smtp.tls.passthrough=true"
+      - "traefik.tcp.services.smtp.loadbalancer.server.port=10024"
+      - "traefik.tcp.services.smtp.loadbalancer.proxyprotocol.version=2"

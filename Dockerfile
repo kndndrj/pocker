@@ -8,10 +8,10 @@ RUN apt-get update -y \
         dovecot-imapd \
         dovecot-sieve \
         spamassassin \
+        spamass-milter \
         spamc \
         opendkim \
         opendkim-tools \
-        dumb-init \
         supervisor \
         rsyslog \
         gettext-base
@@ -45,12 +45,19 @@ COPY ./config/opendkim/keytable ./config/opendkim/signingtable ./config/opendkim
 COPY ./config/sieve/ /var/lib/dovecot/sieve/
 RUN sievec /var/lib/dovecot/sieve/*
 
-# link user files
+# Create a dmarc user
+RUN useradd -m -G mail dmarc
+
+# Make backups and link user files
 RUN mkdir -p /etc/userfiles \
+    && mkdir -p /etc/userfiles.default \
+    # Defaults (userfiles - in case it's not mounted) \
+    && cp /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/userfiles.default \
+    && cp /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/userfiles \
+    # Links \
     && ln -sf /etc/userfiles/passwd /etc/passwd \
     && ln -sf /etc/userfiles/shadow /etc/shadow \
     && ln -sf /etc/userfiles/group /etc/group \
     && ln -sf /etc/userfiles/gshadow /etc/gshadow
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD /usr/local/bin/init.sh && supervisord -c /etc/supervisor/supervisord.conf
