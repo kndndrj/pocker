@@ -32,19 +32,18 @@ mailbox_command = /usr/lib/dovecot/deliver
 smtpd_tls_cert_file = /etc/letsencrypt/live/${POCKER_MAIL_DOMAIN}/fullchain.pem
 smtpd_tls_key_file = /etc/letsencrypt/live/${POCKER_MAIL_DOMAIN}/privkey.pem
 smtpd_tls_security_level = may
+smtpd_tls_auth_only = yes
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtpd_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtpd_tls_exclude_ciphers = aNULL, LOW, EXP, MEDIUM, ADH, AECDH, MD5, DSS, ECDSA, CAMELLIA128, 3DES, CAMELLIA256, RSA+AES, eNULL
 
 smtp_tls_CApath=/etc/ssl/certs
 smtp_tls_security_level = may
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
-
-smtp_tls_CAfile = /etc/letsencrypt/live/${POCKER_MAIL_DOMAIN}/cert.pem
-smtpd_tls_auth_only = yes
-smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
-smtpd_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 smtp_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+
 tls_preempt_cipherlist = yes
-smtpd_tls_exclude_ciphers = aNULL, LOW, EXP, MEDIUM, ADH, AECDH, MD5, DSS, ECDSA, CAMELLIA128, 3DES, CAMELLIA256, RSA+AES, eNULL
 
 
 # SASL

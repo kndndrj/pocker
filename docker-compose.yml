@@ -24,8 +24,8 @@ services:
       - "--entrypoints.smtpsecure.address=:465"
       # smtp
       - "--entrypoints.smtp.address=:25"
-      #letsencrypt
-      - "--certificatesresolvers.certresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      # letsencrypt
+      #- "--certificatesresolvers.certresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # -- for testing letsencrypt
       - "--certificatesresolvers.certresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.certresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.certresolver.acme.email=postmaster@example.com"
@@ -39,14 +39,15 @@ services:
       - "993:993"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
+      - "./data/letsencrypt:/letsencrypt"
 
   mailserver:
     image: pocker:latest
     container_name: mail
     volumes:
       # Letsencrypt certs
-      - "/etc/letsencrypt:/etc/letsencrypt:ro"
+      - "./data/letsencrypt:/letsencrypt:ro" # -- if using traefik certs
+      #- "/etc/letsencrypt:/etc/letsencrypt:ro" # -- if using certbot certs from the host
       # Mail direcotry
       - "./data/mailserver/mail:/var/mail"
       # User data
