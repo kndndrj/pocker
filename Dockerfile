@@ -30,6 +30,9 @@ COPY ./supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 COPY ./supervisor/scripts/ ./utils/ /usr/local/bin/
 RUN chmod +x /usr/local/bin/*
 
+# Copy configs
+COPY ./config/ /etc/mailconfigs/
+
 # Copy postfix configs
 COPY ./config/postfix/ /etc/postfix/
 
@@ -52,12 +55,13 @@ RUN useradd -m -G mail dmarc
 RUN mkdir -p /etc/userfiles \
     && mkdir -p /etc/userfiles.default \
     # Defaults (userfiles - in case it's not mounted) \
-    && cp /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/userfiles.default \
-    && cp /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/userfiles \
+    && cp /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/aliases /etc/userfiles.default \
+    && cp /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/aliases /etc/userfiles \
     # Links \
     && ln -sf /etc/userfiles/passwd /etc/passwd \
     && ln -sf /etc/userfiles/shadow /etc/shadow \
     && ln -sf /etc/userfiles/group /etc/group \
-    && ln -sf /etc/userfiles/gshadow /etc/gshadow
+    && ln -sf /etc/userfiles/gshadow /etc/gshadow \
+    && ln -sf /etc/userfiles/aliases /etc/aliases
 
 CMD /usr/local/bin/init.sh && supervisord -c /etc/supervisor/supervisord.conf

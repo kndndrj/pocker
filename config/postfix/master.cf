@@ -8,20 +8,22 @@
 
 # port 25 server to server
 smtp      inet  n       -       y       -       -       smtpd
-# port 587 client to server (STARTTLS)
-submission inet n       -       y       -       -       smtpd
-        -o syslog_name=postfix/submission
-        -o smtpd_tls_security_level=encrypt
-        -o smtpd_sasl_auth_enable=yes
-        -o smtpd_tls_auth_only=yes
+# port 10025 server to server (behind proxy)
+10025     inet  n       -       n       -       1       postscreen
+        -o syslog_name=postfix/10025
+smtpd     pass  -       -       n       -       -       smtpd
+
 # port 465 client to server (SSL/TLS)
 smtps     inet  n       -       y       -       -       smtpd
         -o syslog_name=postfix/smtps
         -o smtpd_tls_wrappermode=yes
         -o smtpd_sasl_auth_enable=yes
-# port 10024 server to server (behind proxy)
-10024     inet  n       -       n       -       1       postscreen
-smtpd     pass  -       -       n       -       -       smtpd
+# port 10465 client to server (SSL/TLS - behind proxy)
+10465     inet  n       -       y       -       -       smtpd
+        -o syslog_name=postfix/10465
+        -o smtpd_tls_wrappermode=yes
+        -o smtpd_sasl_auth_enable=yes
+        -o smtpd_upstream_proxy_protocol=haproxy
 
 # other
 pickup    unix  n       -       y       60      1       pickup

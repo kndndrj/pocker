@@ -16,6 +16,7 @@ if [ ! -s /etc/passwd ] && [ ! -s /etc/shadow ] && [ ! -s /etc/group ] && [ ! -s
     cat /etc/userfiles.default/shadow > /etc/shadow
     cat /etc/userfiles.default/group > /etc/group
     cat /etc/userfiles.default/gshadow > /etc/gshadow
+    cat /etc/userfiles.default/aliases > /etc/aliases
 fi
 
 ###################################
@@ -72,6 +73,16 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# chown aliases to root
+echo "info: Changing ownership of alias files"
+
+chown root:root /etc/aliases
+chmod 644 /etc/aliases
+if [ $? -ne 0 ]; then
+    echo "error: Could not change ownership/permissions of /etc/aliases. Make sure you don't have \":ro\" mount option set!"
+    exit 1
+fi
+
 ###################################
 ## TEMPLATING                    ##
 ###################################
@@ -82,18 +93,34 @@ export POCKER_SUBDOMAIN="$SUBDOMAIN"
 export POCKER_MAIL_DOMAIN="$SUBDOMAIN.$DOMAIN"
 export POCKER_PROXY_IP="$(getent hosts traefik | cut -d ' ' -f 1)"
 
-TEMP="$(mktemp)"
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/dovecot/dovecot.conf  > "$TEMP"
-cat "$TEMP" > /etc/dovecot/dovecot.conf
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/postfix/main.cf       > "$TEMP"
-cat "$TEMP" > /etc/postfix/main.cf
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/postfix/master.cf     > "$TEMP"
-cat "$TEMP" > /etc/postfix/master.cf
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/opendkim.conf         > "$TEMP"
-cat "$TEMP" > /etc/opendkim.conf
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/opendkim/keytable     > "$TEMP"
-cat "$TEMP" > /etc/opendkim/keytable
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/opendkim/signingtable > "$TEMP"
-cat "$TEMP" > /etc/opendkim/signingtable
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/opendkim/trustedhosts > "$TEMP"
-cat "$TEMP" > /etc/opendkim/trustedhosts
+# All files are already at it's place (moved in Dockerfile) we just need to handle the templated ones
+
+# Postfix
+envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/postfix/main.cf        > /etc/postfix/main.cf
+envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/postfix/master.cf      > /etc/postfix/master.cf
+
+# Dovecot
+envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/dovecot/dovecot.conf   > /etc/dovecot/dovecot.conf
+
+# Opendkim
+envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/opendkim/opendkim.conf > /etc/opendkim.conf
+envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/opendkim/keytable      > /etc/opendkim/keytable
+envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/opendkim/signingtable  > /etc/opendkim/signingtable
+envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/opendkim/trustedhosts  > /etc/opendkim/trustedhosts
+
+###################################
+## CLEARING PID FILES            ##
+###################################
+echo "info: Clearing process PIDs"
+rm -f /run/supervisord.pid \
+   /run/rsyslogd.pid \
+   /run/dovecot/master.pid \
+   /run/opendkim/opendkim.pid \
+   /run/spamass/spamass.pid \
+   /var/run/spamd.pid
+
+###################################
+## GENERATING ALIAS MAPS         ##
+###################################
+echo "info: Generating alias maps"
+newaliases -f /etc/aliases

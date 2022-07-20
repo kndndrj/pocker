@@ -3,7 +3,6 @@ version: '3.3'
 
 services:
 
-
   traefik:
     image: "traefik:v2.8"
     container_name: "traefik"
@@ -13,23 +12,24 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      # http/https
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
       # imap
       - "--entrypoints.imap.address=:993"
-      - "--entrypoints.imap.proxyprotocol.insecure=true"
       # smtpsecure
       - "--entrypoints.smtpsecure.address=:465"
-      - "--entrypoints.smtpsecure.proxyprotocol.insecure=true"
       # smtp
       - "--entrypoints.smtp.address=:25"
-      - "--entrypoints.smtp.proxyprotocol.insecure=true"
       #letsencrypt
-      - "--certificatesresolvers.mailresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.mailresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.mailresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.mailresolver.acme.email=postmaster@example.com"
-      - "--certificatesresolvers.mailresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.certresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.certresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.certresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.certresolver.acme.email=postmaster@example.com"
+      - "--certificatesresolvers.certresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "8080:8080"
@@ -62,20 +62,56 @@ services:
       - "traefik.tcp.routers.imap.entrypoints=imap"
       - "traefik.tcp.routers.imap.rule=HostSNI(`*`)"
       - "traefik.tcp.routers.imap.service=imap"
-        #- "traefik.tcp.routers.imap.tls.passthrough=true"
       - "traefik.tcp.services.imap.loadbalancer.server.port=10993"
       - "traefik.tcp.services.imap.loadbalancer.proxyprotocol.version=2"
       # smtpsecure
       - "traefik.tcp.routers.smtpsecure.entrypoints=smtpsecure"
       - "traefik.tcp.routers.smtpsecure.rule=HostSNI(`*`)"
       - "traefik.tcp.routers.smtpsecure.service=smtpsecure"
-        #- "traefik.tcp.routers.smtpsecure.tls.passthrough=true"
       - "traefik.tcp.services.smtpsecure.loadbalancer.server.port=10465"
       - "traefik.tcp.services.smtpsecure.loadbalancer.proxyprotocol.version=2"
       # smtp
       - "traefik.tcp.routers.smtp.entrypoints=smtp"
       - "traefik.tcp.routers.smtp.rule=HostSNI(`*`)"
       - "traefik.tcp.routers.smtp.service=smtp"
-        #"- "traefik.tcp.routers.smtp.tls.passthrough=true"
-      - "traefik.tcp.services.smtp.loadbalancer.server.port=10024"
+      - "traefik.tcp.services.smtp.loadbalancer.server.port=10025"
       - "traefik.tcp.services.smtp.loadbalancer.proxyprotocol.version=2"
+
+  roundcubemail:
+    image: roundcube/roundcubemail:latest
+    container_name: roundcubemail
+    restart: unless-stopped
+    depends_on:
+      - roundcubedb
+    links:
+      - roundcubedb
+    environment:
+      - ROUNDCUBEMAIL_DB_TYPE=pgsql
+      - ROUNDCUBEMAIL_DB_HOST=roundcubedb
+      - ROUNDCUBEMAIL_DB_NAME=roundcube
+      - ROUNDCUBEMAIL_DB_USER=roundcube
+      - ROUNDCUBEMAIL_DB_PASSWORD=roundcube
+      - ROUNDCUBEMAIL_SKIN=elastic
+      - ROUNDCUBEMAIL_DEFAULT_HOST=ssl://mail.example.com
+      - ROUNDCUBEMAIL_DEFAULT_PORT=993
+      - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.example.com
+      - ROUNDCUBEMAIL_SMTP_PORT=465
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.roundcube.rule=Host(`mail.example.com`)"
+      - "traefik.http.routers.roundcube.entrypoints=websecure"
+      - "traefik.http.routers.roundcube.tls.certresolver=certresolver"
+      - "traefik.http.routers.roundcube.service=roundcube"
+      - "traefik.http.services.roundcube.loadbalancer.server.port=80"
+
+  roundcubedb:
+    image: postgres:latest
+    container_name: roundcubedb
+    restart: unless-stopped
+    volumes:
+      - "./data/db:/var/lib/postgresql/data"
+    environment:
+      - POSTGRES_DB=roundcube
+      - POSTGRES_USER=roundcube
+      - POSTGRES_PASSWORD=roundcube
+                    

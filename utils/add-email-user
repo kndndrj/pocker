@@ -88,7 +88,10 @@ if ! (grep -q "^$USERNAME:" /etc/gshadow); then
 fi
 
 ###################################
-## HOME DIRECTORY                ##
+## HOME AND MAIL DIRECTORIES     ##
 ###################################
 mkdir -p "$USER_HOME"
 chown -R "$USERNAME:$USERNAME" "$USER_HOME"
+
+mkdir -p "/var/mail/$USERNAME"
+chown -R "$USERNAME:$USERNAME" "/var/mail/$USERNAME"
