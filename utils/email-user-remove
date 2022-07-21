@@ -22,18 +22,18 @@ fi
 
 # Ask for password here (if not already provided), so we can exit before doing anything
 if [ -z "$PASSWORD" ]; then
-    printf "current password for user $USERNAME: "
+    printf "current password for user %s: " "$USERNAME"
     stty -echo
-    read PASSWORD
+    read -r PASSWORD
     stty echo
     echo
 fi
 
 # Read the existing password from /etc/shadow
-SHADOW="$(getent shadow $USERNAME)"
+SHADOW="$(getent shadow "$USERNAME")"
 HASH="$(echo "$SHADOW" | cut -d ":" -f 2)"
-FORMAT="$(echo "$HASH" | cut -d "$" -f 2)"
-SALT="$(echo "$HASH" | cut -d "$" -f 3)"
+FORMAT="$(echo "$HASH" | cut -d "\$" -f 2)"
+SALT="$(echo "$HASH" | cut -d "\$" -f 3)"
 
 if [ "$FORMAT" != "6" ]; then
     echo "error: unsupported hashing algorithm of current password: \"\$$OLDFORMAT\$\""
@@ -41,7 +41,7 @@ if [ "$FORMAT" != "6" ]; then
 fi
 
 # Validate the password
-if [ "$(openssl passwd -6 -salt $SALT $PASSWORD)" != "$HASH" ]; then
+if [ "$(openssl passwd -6 -salt "$SALT" "$PASSWORD")" != "$HASH" ]; then
     echo "error: wrong password!"
     exit 1
 fi
@@ -54,13 +54,13 @@ TEMP="$(mktemp)"
 
 # /etc/passwd
 if (grep -q "^$USERNAME:" /etc/passwd); then
-    sed "/^$USERNAME:/d" /etc/passwd > $TEMP
+    sed "/^$USERNAME:/d" /etc/passwd > "$TEMP"
     cat "$TEMP" > /etc/passwd
 fi
 
 # /etc/group - remove
 if (grep -q "^$USERNAME:" /etc/group); then
-    sed "/^$USERNAME:/d" /etc/group > $TEMP
+    sed "/^$USERNAME:/d" /etc/group > "$TEMP"
     cat "$TEMP" > /etc/group
 fi
 
@@ -75,23 +75,23 @@ if (grep -q "^mail:x:.*$USERNAME" /etc/group); then
         REMOVE_STRING="$USERNAME,"
     fi
 
-    sed "/mail:x:/ s/$REMOVE_STRING//g" /etc/group > $TEMP
+    sed "/mail:x:/ s/$REMOVE_STRING//g" /etc/group > "$TEMP"
     cat "$TEMP" > /etc/group
 fi
 
 # /etc/shadow
 if (grep -q "^$USERNAME:" /etc/shadow); then
-    sed "/^$USERNAME:/d" /etc/shadow > $TEMP
+    sed "/^$USERNAME:/d" /etc/shadow > "$TEMP"
     cat "$TEMP" > /etc/shadow
 fi
 
 # /etc/gshadow
 if (grep -q "^$USERNAME:" /etc/gshadow); then
-    sed "/^$USERNAME:/d" /etc/gshadow > $TEMP
+    sed "/^$USERNAME:/d" /etc/gshadow > "$TEMP"
     cat "$TEMP" > /etc/gshadow
 fi
 
 ###################################
 ## HOME AND MAIL DIRECTORIES     ##
 ###################################
-rm -rf "/home/$USERNAME" "/var/mail/$USERNAME"
+rm -rf "/home/${USERNAME:?}" "/var/mail/$USERNAME"

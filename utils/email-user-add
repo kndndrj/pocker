@@ -13,18 +13,18 @@ fi
 ###################################
 USERNAME="$1"
 PASSWORD="$2"
-LARGEST_ID="$(cat /etc/passwd | awk -F ":" '$3 >= $4 && $3 < 60000 { print $3 ;} $3 < $4 && $4 < 60000 { print $4 ;}' | sort -n | tail -n 1)"
-[ $LARGEST_ID -lt 1000 ] && LARGEST_ID=1000
-USER_ID="$(expr $LARGEST_ID + 1)"
+LARGEST_ID="$(awk -F ":" '$3 >= $4 && $3 < 60000 { print $3 ;} $3 < $4 && $4 < 60000 { print $4 ;}' /etc/passwd | sort -n | tail -n 1)"
+[ "$LARGEST_ID" -lt 1000 ] && LARGEST_ID=1000
+USER_ID="$(( LARGEST_ID + 1 ))"
 USER_HOME="/home/$USERNAME"
 
 echo "info: creating user: $USERNAME"
 
 # Ask for password here (if not already provided), so we can exit before doing anything
 if [ -z "$PASSWORD" ]; then
-    printf "password for user $USERNAME: "
+    printf "password for user %s: " "$USERNAME"
     stty -echo
-    read PASSWORD
+    read -r PASSWORD
     stty echo
     echo
     if [ -z "$PASSWORD" ]; then
@@ -34,7 +34,7 @@ if [ -z "$PASSWORD" ]; then
 
     printf "confirm password: "
     stty -echo
-    read CONFIRM
+    read -r CONFIRM
     stty echo
     echo
     if [ "$CONFIRM" != "$PASSWORD" ]; then
@@ -66,9 +66,9 @@ if ! (grep -q "^mail:x:.*$USERNAME" /etc/group); then
     fi
 
     TEMP="$(mktemp)"
-    sed "/mail:x:/ s/$/$INSERT_STRING/g" /etc/group > $TEMP
+    sed "/mail:x:/ s/$/$INSERT_STRING/g" /etc/group > "$TEMP"
     cat "$TEMP" > /etc/group
-    rm $TEMP
+    rm "$TEMP"
 fi
 
 # /etc/shadow
@@ -76,7 +76,7 @@ if ! (grep -q "^$USERNAME:" /etc/shadow); then
     # Generate salt
     SALT="$(openssl rand -hex 4)"
     # Generate the actual password
-    HASH="$(openssl passwd -6 -salt $SALT $PASSWORD)"
+    HASH="$(openssl passwd -6 -salt "$SALT" "$PASSWORD")"
     # Get number of days since epoch
     DAYS_SINCE_EPOCH="$(( $(date +%s) / 86400 ))"
 

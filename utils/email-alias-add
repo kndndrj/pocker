@@ -21,7 +21,7 @@ fi
 
 # create a backup
 BACKUP="$(mktemp)"
-cat /etc/aliases > $BACKUP
+cat /etc/aliases > "$BACKUP"
 
 # If alias group already exists
 if (grep -q "$FROM:" /etc/aliases); then
@@ -33,9 +33,9 @@ if (grep -q "$FROM:" /etc/aliases); then
     fi
 
     TEMP="$(mktemp)"
-    sed "/$FROM:/ s/$/,$TO/g" /etc/aliases > $TEMP
+    sed "/$FROM:/ s/$/,$TO/g" /etc/aliases > "$TEMP"
     cat "$TEMP" > /etc/aliases
-    rm $TEMP
+    rm "$TEMP"
 else
     # If alias group doesn't exist
     echo "$FROM: $TO" >> /etc/aliases
@@ -46,8 +46,8 @@ RESPONSE=$(newaliases -f /etc/aliases 2>&1)
 if [ -n "$RESPONSE" ]; then
     echo "error: $RESPONSE"
     echo "error: rolling back"
-    cat $BACKUP > /etc/aliases
-    rm $BACKUP
+    cat "$BACKUP" > /etc/aliases
+    rm "$BACKUP"
     exit 1
 fi
 

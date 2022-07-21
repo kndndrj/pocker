@@ -16,14 +16,14 @@ if [ ! -s /etc/passwd ] && [ ! -s /etc/shadow ] && [ ! -s /etc/group ] && [ ! -s
     cat /etc/userfiles.default/shadow > /etc/shadow
     cat /etc/userfiles.default/group > /etc/group
     cat /etc/userfiles.default/gshadow > /etc/gshadow
-    > /etc/aliases
+    : > /etc/aliases
 fi
 
 
 ###################################
 ## KEY GENERATION                ##
 ###################################
-if [ ! -f /etc/opendkim/keys/$SUBDOMAIN.private ]; then
+if [ ! -f /etc/opendkim/keys/"$SUBDOMAIN".private ]; then
     echo "info: Opendkim keys for $SUBDOMAIN not found. Generating new ones."
     opendkim-genkey -D /etc/opendkim/keys -d "$DOMAIN" -s "$SUBDOMAIN"
 fi
@@ -45,9 +45,10 @@ done
 # chown mail directory to mail
 echo "info: Changing ownership of /var/mail"
 
-chgrp mail /var/mail
-chmod 2775 /var/mail
-if [ $? -ne 0 ]; then
+if ! ( \
+chgrp mail /var/mail && \
+chmod 2775 /var/mail \
+); then
     echo "error: Could not change ownership/permissions of /var/mail. Make sure you don't have \":ro\" mount option set!"
     exit 1
 fi
@@ -55,9 +56,10 @@ fi
 # chown dkim keys to opendkim
 echo "info: Changing ownership of dkim keys"
 
-chown -R opendkim:opendkim /etc/opendkim/keys
-chmod 640 /etc/opendkim/keys/*
-if [ $? -ne 0 ]; then
+if ! ( \
+chown -R opendkim:opendkim /etc/opendkim/keys && \
+chmod 640 /etc/opendkim/keys/* \
+); then
     echo "error: Could not change ownership/permissions of dkim keys. Make sure you don't have \":ro\" mount option set!"
     exit 1
 fi
@@ -65,11 +67,12 @@ fi
 # chown password files to root
 echo "info: Changing ownership of passwd files"
 
-chown root:root /etc/passwd /etc/group /etc/aliases
-chown root:shadow /etc/shadow /etc/gshadow
-chmod 644 /etc/passwd /etc/group /etc/aliases
-chmod 640 /etc/shadow /etc/gshadow
-if [ $? -ne 0 ]; then
+if ! ( \
+chown root:root /etc/passwd /etc/group /etc/aliases && \
+chown root:shadow /etc/shadow /etc/gshadow && \
+chmod 644 /etc/passwd /etc/group /etc/aliases && \
+chmod 640 /etc/shadow /etc/gshadow \
+); then
     echo "error: Could not change ownership/permissions of user passwd files. Make sure you don't have \":ro\" mount option set!"
     exit 1
 fi
@@ -80,10 +83,12 @@ fi
 ###################################
 echo "info: Templating config files"
 
+PROXY_IP="$(getent hosts traefik | cut -d ' ' -f 1)"
+
 export POCKER_DOMAIN="$DOMAIN"
 export POCKER_SUBDOMAIN="$SUBDOMAIN"
 export POCKER_MAIL_DOMAIN="$SUBDOMAIN.$DOMAIN"
-export POCKER_PROXY_IP="$(getent hosts traefik | cut -d ' ' -f 1)"
+export POCKER_PROXY_IP="$PROXY_IP"
 
 # Template the list of files
 for i in \
@@ -103,6 +108,7 @@ for i in \
 ; do
     source="${i%%:*}"
     destination="${i#*:}"
+    # shellcheck disable=SC2016 # we don't want these variables to expand
     envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < "$source" > "$destination"
 done
 
