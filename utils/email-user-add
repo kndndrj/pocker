@@ -1,7 +1,7 @@
 #!/bin/sh
 
 USAGE="Usage: $0 <user> [password]
-       If the password is not defined, you will be prompted for one."
+If password is not defined, you will be prompted for one."
 
 if [ -z "$1" ]; then
     echo "$USAGE"
@@ -58,7 +58,6 @@ fi
 
 # /etc/group - add to mail group
 if ! (grep -q "^mail:x:.*$USERNAME" /etc/group); then
-    TEMP="$(mktemp)"
 
     # add a comma if someone is already in the group
     INSERT_STRING="$USERNAME"
@@ -66,8 +65,10 @@ if ! (grep -q "^mail:x:.*$USERNAME" /etc/group); then
         INSERT_STRING=",$USERNAME"
     fi
 
+    TEMP="$(mktemp)"
     sed "/mail:x:/ s/$/$INSERT_STRING/g" /etc/group > $TEMP
     cat "$TEMP" > /etc/group
+    rm $TEMP
 fi
 
 # /etc/shadow

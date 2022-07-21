@@ -9,15 +9,16 @@ fi
 
 
 ###################################
-## FILES (IF NOT PROVIDED)       ##
+## USER FILES (IF NOT PROVIDED)  ##
 ###################################
-if [ ! -s /etc/passwd ] && [ ! -s /etc/shadow ] && [ ! -s /etc/group ] && [ ! -s /etc/gshadow ]; then
+if [ ! -s /etc/passwd ] && [ ! -s /etc/shadow ] && [ ! -s /etc/group ] && [ ! -s /etc/gshadow ] && [ ! -s /etc/aliases ]; then
     cat /etc/userfiles.default/passwd > /etc/passwd
     cat /etc/userfiles.default/shadow > /etc/shadow
     cat /etc/userfiles.default/group > /etc/group
     cat /etc/userfiles.default/gshadow > /etc/gshadow
-    cat /etc/userfiles.default/aliases > /etc/aliases
+    > /etc/aliases
 fi
+
 
 ###################################
 ## KEY GENERATION                ##
@@ -64,24 +65,15 @@ fi
 # chown password files to root
 echo "info: Changing ownership of passwd files"
 
-chown root:root /etc/passwd /etc/group
+chown root:root /etc/passwd /etc/group /etc/aliases
 chown root:shadow /etc/shadow /etc/gshadow
-chmod 644 /etc/passwd /etc/group
+chmod 644 /etc/passwd /etc/group /etc/aliases
 chmod 640 /etc/shadow /etc/gshadow
 if [ $? -ne 0 ]; then
     echo "error: Could not change ownership/permissions of user passwd files. Make sure you don't have \":ro\" mount option set!"
     exit 1
 fi
 
-# chown aliases to root
-echo "info: Changing ownership of alias files"
-
-chown root:root /etc/aliases
-chmod 644 /etc/aliases
-if [ $? -ne 0 ]; then
-    echo "error: Could not change ownership/permissions of /etc/aliases. Make sure you don't have \":ro\" mount option set!"
-    exit 1
-fi
 
 ###################################
 ## TEMPLATING                    ##
@@ -93,20 +85,31 @@ export POCKER_SUBDOMAIN="$SUBDOMAIN"
 export POCKER_MAIL_DOMAIN="$SUBDOMAIN.$DOMAIN"
 export POCKER_PROXY_IP="$(getent hosts traefik | cut -d ' ' -f 1)"
 
-# All files are already at it's place (moved in Dockerfile) we just need to handle the templated ones
+# Template the list of files
+for i in \
+"/etc/mailconfigs/postfix/main.cf:/etc/postfix/main.cf" \
+"/etc/mailconfigs/postfix/master.cf:/etc/postfix/master.cf" \
+"/etc/mailconfigs/postfix/header_checks:/etc/postfix/header_checks" \
+\
+"/etc/mailconfigs/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf" \
+"/etc/mailconfigs/dovecot/pamd:/etc/pam.d/dovecot" \
+\
+"/etc/mailconfigs/opendkim/opendkim.conf:/etc/opendkim.conf" \
+"/etc/mailconfigs/opendkim/keytable:/etc/opendkim/keytable" \
+"/etc/mailconfigs/opendkim/signingtable:/etc/opendkim/signingtable" \
+"/etc/mailconfigs/opendkim/trustedhosts:/etc/opendkim/trustedhosts" \
+\
+"/etc/mailconfigs/sieve/default.sieve:/var/lib/dovecot/sieve/default.sieve" \
+; do
+    source="${i%%:*}"
+    destination="${i#*:}"
+    envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < "$source" > "$destination"
+done
 
-# Postfix
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/postfix/main.cf        > /etc/postfix/main.cf
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/postfix/master.cf      > /etc/postfix/master.cf
+# Compile sieve scripts when everything is in place
+echo "info: Compiling sieve scripts"
+sievec /var/lib/dovecot/sieve/*
 
-# Dovecot
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/dovecot/dovecot.conf   > /etc/dovecot/dovecot.conf
-
-# Opendkim
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/opendkim/opendkim.conf > /etc/opendkim.conf
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/opendkim/keytable      > /etc/opendkim/keytable
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/opendkim/signingtable  > /etc/opendkim/signingtable
-envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < /etc/mailconfigs/opendkim/trustedhosts  > /etc/opendkim/trustedhosts
 
 ###################################
 ## CLEARING PID FILES            ##
@@ -119,8 +122,13 @@ rm -f /run/supervisord.pid \
    /run/spamass/spamass.pid \
    /var/run/spamd.pid
 
+
 ###################################
 ## GENERATING ALIAS MAPS         ##
 ###################################
 echo "info: Generating alias maps"
 newaliases -f /etc/aliases
+
+
+# Execute any dockerfile CMD's as PID 1
+exec "$@"
