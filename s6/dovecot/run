@@ -1,0 +1,2 @@
+#!/command/execlineb -P
+/usr/sbin/dovecot -F -c /etc/dovecot/dovecot.conf

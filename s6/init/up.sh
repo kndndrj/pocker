@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/command/with-contenv sh
 
 echo "info: Running Init script"
 
@@ -38,7 +38,7 @@ EXISTING_MAIL_USERS="$(ls /var/mail)"
 for u in $EXISTING_MAIL_USERS; do
     echo "info: configuring mail permissions for user: \"$u\""
     chown -R "$u:$u" "/var/mail/$u"
-    mkdir -p "home/$u"
+    mkdir -p "/home/$u"
     chown -R "$u:$u" "/home/$u"
 done
 
@@ -112,29 +112,12 @@ for i in \
     envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < "$source" > "$destination"
 done
 
-# Compile sieve scripts when everything is in place
+
+###################################
+## MISC                          ##
+###################################
 echo "info: Compiling sieve scripts"
 sievec /var/lib/dovecot/sieve/*
 
-
-###################################
-## CLEARING PID FILES            ##
-###################################
-echo "info: Clearing process PIDs"
-rm -f /run/supervisord.pid \
-   /run/rsyslogd.pid \
-   /run/dovecot/master.pid \
-   /run/opendkim/opendkim.pid \
-   /run/spamass/spamass.pid \
-   /var/run/spamd.pid
-
-
-###################################
-## GENERATING ALIAS MAPS         ##
-###################################
 echo "info: Generating alias maps"
 newaliases -f /etc/aliases
-
-
-# Execute any dockerfile CMD's as PID 1
-exec "$@"

@@ -1,0 +1,2 @@
+#!/command/execlineb -P
+/usr/sbin/spamd --create-prefs --max-children 5 --helper-home-dir

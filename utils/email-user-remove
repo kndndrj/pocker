@@ -94,4 +94,4 @@ fi
 ###################################
 ## HOME AND MAIL DIRECTORIES     ##
 ###################################
-rm -rf "/home/${USERNAME:?}" "/var/mail/$USERNAME"
+rm -rf "/home/${USERNAME:?}" "/var/mail/${USERNAME:?}"
