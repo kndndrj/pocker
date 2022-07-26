@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Pocker Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --color-primary: #F5795E;
+      --color-secondary: #D56C6C;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      padding-right: 5px;
+      padding-left: 5px;
+    }
+
+    a {
+      display: inline-block;
+      text-decoration: none;
+      background-color: var(--color-primary);
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+    }
+
+
+    a:hover {
+      opacity: 0.8;
+    }
+
+    header {
+      text-align: center;
+      width: 100%;
+      background-color: var(--color-primary);
+      padding: 40px 0px;
+      color: white;
+      margin-bottom: 20px;
+      border: 0px solid var(--color-primary);
+      border-radius: 16px;
+    }
+
+    ul {
+      list-style-type: none;
+    }
+
+    .container {
+      padding: 16px;
+      display: inline-block;
+    }
+
+    .collapsible {
+      background-color: #777;
+      color: white;
+      padding: 18px;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .content {
+      overflow: hidden;
+      transition: max-height 0.2s ease-out;
+      border: 3px solid #f1f1f1;
+    }
+
+    .loginbtn {
+      background-color: var(--color-secondary);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Pocker Dashboard</h1>
+  </header>
+
+  <main>
+
+    <div class="collapsible">Response</div>
+    <div class="content">
+
+      <div class="container">
+        <ul>
+            {{ contents }}
+        </ul>
+        <a href="/dashboard">Back</a>
+      </div>
+
+    </div>
+  </main>
+  <footer>
+    <a class="loginbtn" href="/">Login Page</a>
+  </footer>
+
+</body>
+
+</html>

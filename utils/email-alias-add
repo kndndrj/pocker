@@ -24,16 +24,16 @@ BACKUP="$(mktemp)"
 cat /etc/aliases > "$BACKUP"
 
 # If alias group already exists
-if (grep -q "$FROM:" /etc/aliases); then
+if (grep -q "^$FROM:" /etc/aliases); then
 
     # Check if user is already in alias group
-    if (grep -Eq "$FROM:.*(|\s|,)$TO($|\s|,)" /etc/aliases); then
+    if (grep -Eq "^$FROM:.*(|\s|,)$TO($|\s|,)" /etc/aliases); then
         echo "info: user is already in $FROM alias group"
         exit 0
     fi
 
     TEMP="$(mktemp)"
-    sed "/$FROM:/ s/$/,$TO/g" /etc/aliases > "$TEMP"
+    sed "/^$FROM:/ s/$/,$TO/g" /etc/aliases > "$TEMP"
     cat "$TEMP" > /etc/aliases
     rm "$TEMP"
 else

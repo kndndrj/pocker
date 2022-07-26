@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Pocker Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --color-primary: #F5795E;
+      --color-secondary: #D56C6C;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      padding-right: 5px;
+      padding-left: 5px;
+    }
+
+    main {
+      margin-bottom: 100px;
+    }
+
+    form {
+      border: 3px solid #f1f1f1;
+    }
+
+    input[type=text],
+    input[type=password] {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    header {
+      text-align: center;
+      width: 100%;
+      background-color: var(--color-primary);
+      padding: 40px 0px;
+      color: white;
+      margin-bottom: 20px;
+      border: 0px solid var(--color-primary);
+      border-radius: 16px;
+    }
+
+    .submitbtn {
+      background-color: var(--color-primary);
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    a {
+      display: inline-block;
+      text-decoration: none;
+      background-color: var(--color-secondary);
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+    }
+
+    .submitbtn:hover {
+      opacity: 0.8;
+    }
+
+    .container {
+      padding: 16px;
+    }
+
+    .collapsible {
+      background-color: #777;
+      color: white;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .active,
+    .collapsible:hover {
+      background-color: #555;
+    }
+
+    .content {
+      padding: 0 0px;
+      background-color: white;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.2s ease-out;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Pocker Dashboard</h1>
+  </header>
+  <main>
+
+    <button type="button" class="collapsible">Create a New User</button>
+    <div class="content">
+      <form action="/dashboard" method="POST">
+
+        <div class="container">
+          <label for="username"><b>Username</b></label>
+          <input type="text" placeholder="Enter Username" name="username" required>
+
+          <label for="password"><b>Password</b></label>
+          <input type="password" placeholder="Enter Password" name="password" required>
+
+          <label for="password"><b>Confirm Password</b></label>
+          <input type="password" placeholder="Enter Password" name="password_confirm" required>
+
+          <button class="submitbtn" type="submit" name="type" value="create">Create</button>
+        </div>
+
+      </form>
+    </div>
+
+    <button type="button" class="collapsible">Change Existing User's password</button>
+    <div class="content">
+      <form action="/dashboard" method="POST">
+
+        <div class="container">
+          <label for="username"><b>Username</b></label>
+          <input type="text" placeholder="Enter Username" name="username" required>
+
+          <label for="password"><b>Old Password</b></label>
+          <input type="password" placeholder="Enter Old Password" name="password_old" required>
+
+          <label for="password"><b>New Password</b></label>
+          <input type="password" placeholder="Enter New Password" name="password" required>
+
+          <label for="password"><b>Confirm New Password</b></label>
+          <input type="password" placeholder="Enter New Password" name="password_confirm" required>
+
+          <button class="submitbtn" type="submit" name="type" value="change">Change</button>
+        </div>
+
+      </form>
+    </div>
+
+    <button type="button" class="collapsible">Remove an Existing User</button>
+    <div class="content">
+      <form action="/dashboard" method="POST">
+
+        <div class="container">
+          <h3>Warning: This will delete all existing user information and email! UNRECOVERABLE!!</h3>
+          <label for="username"><b>Username</b></label>
+          <input type="text" placeholder="Enter Username" name="username" required>
+
+          <label for="password"><b>Password</b></label>
+          <input type="password" placeholder="Enter Password" name="password" required>
+
+          <button class="submitbtn" type="submit" name="type" value="remove">Remove</button>
+        </div>
+
+      </form>
+    </div>
+  </main>
+  <footer>
+    <a href="/">Login Page</a>
+  </footer>
+
+  <script>
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+      coll[i].addEventListener("click", function () {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.maxHeight) {
+          content.style.maxHeight = null;
+        } else {
+          content.style.maxHeight = content.scrollHeight + "px";
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>

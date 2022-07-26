@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/local/bin/shell2http -cgi GET:/dashboard "cat /opt/dashboard/index.html" POST:/dashboard "/opt/dashboard/server.sh"

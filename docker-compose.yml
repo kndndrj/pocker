@@ -77,6 +77,12 @@ services:
       - "traefik.tcp.routers.smtp.service=smtp"
       - "traefik.tcp.services.smtp.loadbalancer.server.port=10025"
       - "traefik.tcp.services.smtp.loadbalancer.proxyprotocol.version=2"
+      # server
+      - "traefik.http.routers.server.rule=Host(`mail.example.com`) && Path(`/dashboard`)"
+      - "traefik.http.routers.server.entrypoints=websecure"
+      - "traefik.http.routers.server.tls.certresolver=certresolver"
+      - "traefik.http.routers.server.service=server"
+      - "traefik.http.services.server.loadbalancer.server.port=8080"
 
   roundcubemail:
     image: roundcube/roundcubemail:latest

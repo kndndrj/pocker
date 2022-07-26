@@ -65,17 +65,17 @@ if (grep -q "^$USERNAME:" /etc/group); then
 fi
 
 # /etc/group - remove from mail group
-if (grep -q "^mail:x:.*$USERNAME" /etc/group); then
+if (grep -q "^mail:x:.*\b$USERNAME\b" /etc/group); then
 
     # handle comma
     REMOVE_STRING="$USERNAME"
-    if (grep -q "^mail:x:.*,$USERNAME" /etc/group); then
+    if (grep -q "^mail:x:.*,\b$USERNAME\b" /etc/group); then
         REMOVE_STRING=",$USERNAME"
-    elif (grep -q "^mail:x:.*$USERNAME," /etc/group); then
+    elif (grep -q "^mail:x:.*\b$USERNAME\b," /etc/group); then
         REMOVE_STRING="$USERNAME,"
     fi
 
-    sed "/mail:x:/ s/$REMOVE_STRING//g" /etc/group > "$TEMP"
+    sed "/mail:x:/ s/\b$REMOVE_STRING\b//" /etc/group > "$TEMP"
     cat "$TEMP" > /etc/group
 fi
 

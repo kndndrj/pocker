@@ -60,5 +60,15 @@ RUN    tar -xf /tmp/cert-dumper.tar.gz -C /tmp/ \
     && mv /tmp/traefik-certs-dumper /usr/local/bin/ \
     && chmod +x /usr/local/bin/traefik-certs-dumper
 
+# Install shell2html
+ADD https://github.com/msoap/shell2http/releases/download/v1.14.1/shell2http_1.14.1_linux_amd64.tar.gz /tmp
+RUN    tar -xf /tmp/shell2http_1.14.1_linux_amd64.tar.gz -C /tmp/ \
+    && mv /tmp/shell2http /usr/local/bin/ \
+    && chmod +x /usr/local/bin/shell2http
+
+# Copy dashboard files
+COPY ./dashboard/scripts /opt/dashboard
+COPY ./dashboard/s6/ /etc/s6-overlay/s6-rc.d/
+
 # Run s6
 ENTRYPOINT ["/init"]

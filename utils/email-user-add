@@ -8,6 +8,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+
 ###################################
 ## VARIABLES                     ##
 ###################################
@@ -17,6 +18,12 @@ LARGEST_ID="$(awk -F ":" '$3 >= $4 && $3 < 60000 { print $3 ;} $3 < $4 && $4 < 6
 [ "$LARGEST_ID" -lt 1000 ] && LARGEST_ID=1000
 USER_ID="$(( LARGEST_ID + 1 ))"
 USER_HOME="/home/$USERNAME"
+
+# check if user already exists
+if (grep -q "^$USERNAME:" /etc/passwd); then
+    echo "warning: User \"$USERNAME\" already exists. Please try again."
+    exit 1
+fi
 
 echo "info: creating user: $USERNAME"
 
@@ -57,7 +64,7 @@ if ! (grep -q "^$USERNAME:" /etc/group); then
 fi
 
 # /etc/group - add to mail group
-if ! (grep -q "^mail:x:.*$USERNAME" /etc/group); then
+if ! (grep -q "^mail:x:.*\b$USERNAME\b" /etc/group); then
 
     # add a comma if someone is already in the group
     INSERT_STRING="$USERNAME"
@@ -66,7 +73,7 @@ if ! (grep -q "^mail:x:.*$USERNAME" /etc/group); then
     fi
 
     TEMP="$(mktemp)"
-    sed "/mail:x:/ s/$/$INSERT_STRING/g" /etc/group > "$TEMP"
+    sed "/mail:x:/ s/$/$INSERT_STRING/" /etc/group > "$TEMP"
     cat "$TEMP" > /etc/group
     rm "$TEMP"
 fi
