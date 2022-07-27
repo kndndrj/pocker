@@ -85,7 +85,7 @@ services:
       - "traefik.http.services.server.loadbalancer.server.port=8080"
 
   roundcubemail:
-    image: roundcube/roundcubemail:latest
+    image: pocker-front:latest
     container_name: roundcubemail
     restart: unless-stopped
     depends_on:
@@ -103,6 +103,7 @@ services:
       - ROUNDCUBEMAIL_DEFAULT_PORT=993
       - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.example.com
       - ROUNDCUBEMAIL_SMTP_PORT=465
+      - ROUNDCUBEMAIL_LOGO_URL=https://www.svgrepo.com/download/423422/sampler.svg
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.roundcube.rule=Host(`mail.example.com`)"
