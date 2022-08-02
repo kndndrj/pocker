@@ -4,4 +4,7 @@ FROM roundcube/roundcubemail:latest
 COPY ./startup.sh /usr/local/bin/apache2-startup-script.sh
 RUN chmod +x /usr/local/bin/apache2-startup-script.sh
 
+# Make icon directory
+RUN mkdir -p /icons
+
 CMD ["apache2-startup-script.sh", "apache2-foreground"]

@@ -5,13 +5,19 @@ fn_create () {
     user="$1"
     pass="$2"
 
-    # validate username
+    # Validate username
     if ! (echo "$user" | grep -Eq "^[a-z0-9]+([\.\_\-]?[a-z0-9]+)*$"); then
         echo "error: invalid email user: \"$user\"!"
         echo "error: valid usernames contain characters  \".-_\", \"a-z\" and \"0-9\"."
         return 1
     fi
-    if ! (email-user-add "$user" "$pass"); then
+    # Add user
+    if ! (useradd -m -G mail "$user"); then
+        echo "error: could not create user \"$user\""
+        return 1
+    fi
+    # Add password
+    if ! (echo "$user:$pass" | chpasswd); then
         echo "error: could not create user \"$user\""
         return 1
     fi
@@ -24,8 +30,20 @@ fn_change_pw () {
     pass_old="$2"
     pass_new="$3"
 
-    if ! (email-user-change-password "$user" "$pass_old" "$pass_new"); then
-        echo "error: could not change password for user \"$user\""
+    # Authenticate user - dmarc as dummy user
+    temp="$(mktemp)"
+    echo "$pass_old" > "$temp"
+    chmod +r "$temp"
+    if ! (su dmarc -c "cat $temp | su $user" 2>/dev/null);then
+        rm -rf "$temp"
+        echo "error: wrong password or the user doesn't exist!"
+        return 1
+    fi
+    rm -rf "$temp"
+
+    # Change password
+    if ! (echo "$user:$pass_new" | chpasswd); then
+        echo "error: could not create user \"$user\""
         return 1
     fi
     echo "info: successfully changed password for user \"$user\""
@@ -36,7 +54,20 @@ fn_remove () {
     user="$1"
     pass="$2"
 
-    if ! (email-user-remove "$user" "$pass"); then
+    # Authenticate user - dmarc as dummy user
+    temp="$(mktemp)"
+    echo "$pass" > "$temp"
+    chmod +r "$temp"
+    if ! (su dmarc -c "cat $temp | su $user" 2>/dev/null);then
+        rm -rf "$temp"
+        echo "error: wrong password or the user doesn't exist!"
+        return 1
+    fi
+    rm -rf "$temp"
+
+    # Remove user
+    rm -rf /var/mail/"${user:?}" /home/"${user:?}"
+    if ! (userdel "$user"); then
         echo "error: could not remove user \"$user\""
         return 1
     fi
@@ -117,7 +148,7 @@ fn_format () {
     # Replace the HTML contents with response message
     awk -v old="{{ contents }}" -v new="$formatted" \
         's=index($0,old){$0=substr($0,1,s-1) new substr($0,s+length(old))} 1' \
-        "$(dirname "$0")"/server_response.html
+        "$(dirname "$0")"/response.html
 }
 
 
@@ -126,3 +157,4 @@ RESPONSE="$(fn_parse_response 2>&1)"
 
 # Format response and print the output
 fn_format "$RESPONSE"
+

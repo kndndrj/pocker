@@ -57,6 +57,8 @@ services:
     environment:
       - SUBDOMAIN=mail
       - DOMAIN=example.com
+      - POCKER_PAGE_TITLE=Pocker Mail Dashboard
+      - POCKER_LOGO_URL=https://i.kym-cdn.com/photos/images/facebook/001/892/888/b6c.png
     labels:
       - "traefik.enable=true"
       # imap
@@ -77,12 +79,12 @@ services:
       - "traefik.tcp.routers.smtp.service=smtp"
       - "traefik.tcp.services.smtp.loadbalancer.server.port=10025"
       - "traefik.tcp.services.smtp.loadbalancer.proxyprotocol.version=2"
-      # server
-      - "traefik.http.routers.server.rule=Host(`mail.example.com`) && Path(`/dashboard`)"
-      - "traefik.http.routers.server.entrypoints=websecure"
-      - "traefik.http.routers.server.tls.certresolver=certresolver"
-      - "traefik.http.routers.server.service=server"
-      - "traefik.http.services.server.loadbalancer.server.port=8080"
+      # dashboard
+      - "traefik.http.routers.dashboard.rule=Host(`mail.example.com`) && PathPrefix(`/dashboard`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=certresolver"
+      - "traefik.http.routers.dashboard.service=dashboard"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
 
   roundcubemail:
     image: pocker-front:latest
@@ -103,7 +105,8 @@ services:
       - ROUNDCUBEMAIL_DEFAULT_PORT=993
       - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.example.com
       - ROUNDCUBEMAIL_SMTP_PORT=465
-      - ROUNDCUBEMAIL_LOGO_URL=https://www.svgrepo.com/download/423422/sampler.svg
+      - ROUNDCUBEMAIL_LOGO_URL=https://i.kym-cdn.com/photos/images/facebook/001/892/888/b6c.png
+      - ROUNDCUBEMAIL_PAGE_TITLE=Pocker Mail
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.roundcube.rule=Host(`mail.example.com`)"

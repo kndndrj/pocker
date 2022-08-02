@@ -9,15 +9,14 @@ fi
 
 
 ###################################
-## USER FILES (IF NOT PROVIDED)  ##
+## USER FILES (IF PROVIDED)      ##
 ###################################
-if [ ! -s /etc/passwd ] && [ ! -s /etc/shadow ] && [ ! -s /etc/group ] && [ ! -s /etc/gshadow ] && [ ! -s /etc/aliases ]; then
-    cat /etc/userfiles.default/passwd > /etc/passwd
-    cat /etc/userfiles.default/shadow > /etc/shadow
-    cat /etc/userfiles.default/group > /etc/group
-    cat /etc/userfiles.default/gshadow > /etc/gshadow
-    : > /etc/aliases
-fi
+echo "info: configuring mounted userfiles"
+[ -f /etc/userfiles/passwd ]  && [ -s /etc/userfiles/passwd ]  && cat /etc/userfiles/passwd > /etc/passwd
+[ -f /etc/userfiles/shadow ]  && [ -s /etc/userfiles/shadow ]  && cat /etc/userfiles/shadow > /etc/shadow
+[ -f /etc/userfiles/group ]   && [ -s /etc/userfiles/group ]   && cat /etc/userfiles/group > /etc/group
+[ -f /etc/userfiles/gshadow ] && [ -s /etc/userfiles/gshadow ] && cat /etc/userfiles/gshadow > /etc/gshadow
+[ -f /etc/userfiles/aliases ] && [ -s /etc/userfiles/aliases ] && cat /etc/userfiles/aliases > /etc/aliases
 
 
 ###################################
@@ -63,20 +62,6 @@ chmod 640 /etc/opendkim/keys/* \
     echo "error: Could not change ownership/permissions of dkim keys. Make sure you don't have \":ro\" mount option set!"
     exit 1
 fi
-
-# chown password files to root
-echo "info: Changing ownership of passwd files"
-
-if ! ( \
-chown root:root /etc/passwd /etc/group /etc/aliases && \
-chown root:shadow /etc/shadow /etc/gshadow && \
-chmod 644 /etc/passwd /etc/group /etc/aliases && \
-chmod 640 /etc/shadow /etc/gshadow \
-); then
-    echo "error: Could not change ownership/permissions of user passwd files. Make sure you don't have \":ro\" mount option set!"
-    exit 1
-fi
-
 
 ###################################
 ## TEMPLATING                    ##

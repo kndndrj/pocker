@@ -12,31 +12,42 @@ done
 # if link provided, download the image
 if [ -n "$ROUNDCUBEMAIL_LOGO_URL" ]; then
 	echo "info: trying to download provided logo"
-	if [ "${ROUNDCUBEMAIL_LOGO_URL##*.}" != "svg" ]; then
-		echo "warning: provided icon is not in svg format"
-	fi
-	mkdir -p /icons
-	if ! (curl --silent -o /icons/logo.svg "$ROUNDCUBEMAIL_LOGO_URL"); then
+	if ! (curl --silent -o /tmp/logo.downloaded "$ROUNDCUBEMAIL_LOGO_URL"); then
 		echo "warning: could not download the provided icon"
+		exit 1
 	fi
+	# Determine the type and move to location
+	TYPE="$(file -b /tmp/logo.downloaded | cut -d " " -f 1 | tr '[:upper:]' '[:lower:]')"
+	mv /tmp/logo.downloaded /icons/logo."$TYPE"
 fi
 
 # check here - can also be provided via mountpoint
-if [ -f /icons/logo.svg ]; then
+if [ "$(ls /icons/logo.* 2>/dev/null | wc -l)" -gt "0" ]; then
 	echo "info: Configuring logo for all skins"
+
+	# First icon
+	ICON="$(basename "$(ls /icons/logo.* | head -n 1)")"
+
 	# Copy icons
 	for i in $(ls /var/www/html/skins); do
-		cp /icons/logo.svg /var/www/html/skins/"$i"/images/logo.svg
-		cp /icons/logo.svg /var/www/html/skins/"$i"/images/roundcube_logo.svg
+		cp /icons/"$ICON" /var/www/html/skins/"$i"/images/"$ICON"
 	done
 
-	# Some skins point to png image... point them to svg
-	for i in $(grep -rl "roundcube_logo.png" /var/www/html/*); do
-		sed -i 's/roundcube_logo\.png/roundcube_logo\.svg/g' $i
+	# Change file types in HTML
+	for i in $(grep -wrl "roundcube_logo.png\|logo.svg" /var/www/html/*); do
+		sed -i "s/roundcube_logo\.png/$ICON/g; s/logo\.svg/$ICON/g" "$i"
 	done
 
+	# Configure favicon
 	echo "info: Configuring logo for favicon"
-	echo '$config["skin_logo"] = [ "[favicon]" => "/images/logo.svg" ];' >> /var/www/html/config/config.inc.php
+	echo "\$config[\"skin_logo\"] = [ \"[favicon]\" => \"/images/$ICON\" ];" >> /var/www/html/config/config.inc.php
+fi
+
+# Webpage title
+if [ -n "$ROUNDCUBEMAIL_PAGE_TITLE" ]; then
+	echo "\$config[\"product_name\"] = \"$ROUNDCUBEMAIL_PAGE_TITLE\";" >> /var/www/html/config/config.inc.php
+else
+	echo "\$config[\"product_name\"] = \"Pocker Mail\";" >> /var/www/html/config/config.inc.php
 fi
 
 exec "$@"

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Watch userfiles files for changes
+inotifywait -mq -e modify -e moved_to /etc/ | while read line; do
+        file="$(echo "$line" | cut -d " " -f 3)"
+
+        # Copy file on match
+        if (echo "$file" | grep -Eq "^(passwd|shadow|group|gshadow|aliases|)$"); then
+                echo "$file"
+                cp /etc/"$file" /etc/userfiles/
+        fi
+done
