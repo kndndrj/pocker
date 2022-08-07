@@ -42,8 +42,8 @@ services:
       - "./data/letsencrypt:/letsencrypt"
 
   mailserver:
-    image: pocker:latest
-    container_name: mail
+    image: pocker-server:latest
+    container_name: mailserver
     volumes:
       # Letsencrypt certs
       - "./data/letsencrypt:/letsencrypt:ro" # -- if using traefik certs
@@ -87,7 +87,7 @@ services:
       - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
 
   roundcubemail:
-    image: pocker-front:latest
+    image: pocker-client:latest
     container_name: roundcubemail
     restart: unless-stopped
     depends_on:

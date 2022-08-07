@@ -24,7 +24,6 @@ echo "info: Templating html files"
 [ -z "$POCKER_PAGE_TITLE" ] && POCKER_PAGE_TITLE="Pocker Mail"
 
 export POCKER_PAGE_TITLE
-echo $POCKER_PAGE_TITLE
 
 # shellcheck disable=SC2016 # we don't want these variables to expand
 TEMP="$(mktemp)"
