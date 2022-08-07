@@ -1,4 +1,7 @@
-FROM debian:11-slim
+#
+# Base Image
+#
+FROM debian:11-slim as base
 
 # Update/upgrade and install packages
 RUN apt-get update -y \
@@ -45,7 +48,14 @@ COPY ./config/ /etc/mailconfigs/
 # Create a dmarc user
 RUN useradd -m -G mail dmarc
 
+# Run s6
+ENTRYPOINT ["/init"]
 
+
+#
+# Image With Dashboard
+#
+FROM base AS dashboard
 
 # Install Extra packages
 RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
@@ -63,6 +73,3 @@ RUN    tar -xf /tmp/shell2http_1.14.1_linux_amd64.tar.gz -C /tmp/ \
 # Copy dashboard files
 COPY ./dashboard/scripts /opt/dashboard
 COPY ./dashboard/s6/ /etc/s6-overlay/s6-rc.d/
-
-# Run s6
-ENTRYPOINT ["/init"]
