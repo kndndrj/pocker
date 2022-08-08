@@ -1,0 +1,61 @@
+---
+
+name: Docker Build
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'master'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Build and Push Basic Server
+        uses: docker/build-push-action@v3
+        with:
+          context: "{{defaultContext}}:server"
+          target: base
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/${{ github.repository }}-server:latest
+            ghcr.io/${{ github.repository }}-server:${{ github.ref_name }}
+      -
+        name: Build and Push Server with Dashboard
+        uses: docker/build-push-action@v3
+        with:
+          context: "{{defaultContext}}:server"
+          target: dashboard
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/${{ github.repository }}-server-dashboard:latest
+            ghcr.io/${{ github.repository }}-server-dashboard:${{ github.ref_name }}
+      -
+        name: Build and Push Client
+        uses: docker/build-push-action@v3
+        with:
+          context: "{{defaultContext}}:client"
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/${{ github.repository }}-client:latest
+            ghcr.io/${{ github.repository }}-client:${{ github.ref_name }}
