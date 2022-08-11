@@ -20,3 +20,13 @@ Check [client's](./client/) README.md for more.
 
 ## Quick Start
 Check the complete [docker-compose.yml](./examples/docker-compose-complete.yml) for a complete example behind Traefik reverse proxy.
+
+## Packages
+- Basic server: `ghcr.io/kndndrj/pocker-server`
+- Server with user management dashboard: `ghcr.io/kndndrj/pocker-server-dashboard`
+- Roundcube client: `ghcr.io/kndndrj/pocker-client`
+
+#### Versioning
+- `latest` - for the latest version
+- `branch` - for the latest version on that branch
+- `v1.2.3` - exact release version (stable)
