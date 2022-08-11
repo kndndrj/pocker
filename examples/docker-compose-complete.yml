@@ -9,7 +9,7 @@ services:
     command:
       #- "--log.level=DEBUG"
       #- "--accesslog=true"
-      - "--api.insecure=true"
+      #- "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       # http/https
@@ -45,9 +45,8 @@ services:
     image: ghcr.io/kndndrj/pocker-server-dashboard:latest
     container_name: mailserver
     volumes:
-      # Letsencrypt certs
-      - "./data/letsencrypt:/letsencrypt:ro" # -- if using traefik certs
-      #- "/etc/letsencrypt:/etc/letsencrypt:ro" # -- if using certbot certs from the host
+      # Letsencrypt certs from traefik
+      - "./data/letsencrypt:/letsencrypt:ro"
       # Mail direcotry
       - "./data/mailserver/mail:/var/mail"
       # User data
@@ -58,7 +57,7 @@ services:
       - SUBDOMAIN=mail
       - DOMAIN=example.com
       - POCKER_PAGE_TITLE=Pocker Mail Dashboard
-      - POCKER_LOGO_URL=https://i.kym-cdn.com/photos/images/facebook/001/892/888/b6c.png
+      - POCKER_LOGO_URL=https://blabla.com/image.png
     labels:
       - "traefik.enable=true"
       # imap
@@ -105,7 +104,7 @@ services:
       - ROUNDCUBEMAIL_DEFAULT_PORT=993
       - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.example.com
       - ROUNDCUBEMAIL_SMTP_PORT=465
-      - ROUNDCUBEMAIL_LOGO_URL=https://i.kym-cdn.com/photos/images/facebook/001/892/888/b6c.png
+      - ROUNDCUBEMAIL_LOGO_URL=https://blabla.com/image.png
       - ROUNDCUBEMAIL_PAGE_TITLE=Pocker Mail
     labels:
       - "traefik.enable=true"
@@ -125,4 +124,3 @@ services:
       - POSTGRES_DB=roundcube
       - POSTGRES_USER=roundcube
       - POSTGRES_PASSWORD=roundcube
-                    

@@ -1,0 +1,59 @@
+---
+version: '3.3'
+
+services:
+
+  mailserver:
+    # image: ghcr.io/kndndrj/pocker-server:latest # -- without dashboard
+    image: ghcr.io/kndndrj/pocker-server-dashboard:latest # -- with dashboard
+    container_name: mailserver
+    volumes:
+      # Letsencrypt certs
+      - "/etc/letsencrypt:/etc/letsencrypt:ro" # -- if using certbot certs from host
+      #- "./data/letsencrypt:/letsencrypt:ro" # -- if using traefik certs
+      # Mail direcotry
+      - "./data/mailserver/mail:/var/mail"
+      # User data
+      - "./data/mailserver/users:/etc/userfiles"
+      # opendkim keys
+      - "./data/mailserver/keys:/etc/opendkim/keys"
+    environment:
+      - SUBDOMAIN=mail
+      - DOMAIN=example.com
+      - POCKER_PAGE_TITLE=Pocker Mail Dashboard
+      - POCKER_LOGO_URL=https://blabla.com/image.png
+    # If NOT using Traefik:
+    ports:
+      - "993:993"
+      - "465:465"
+      - "25:25"
+    # If using Traefik:
+    # Note that traefik doesn't support IMAP or SMTP, so we use a passthrough connection,
+    # which means the services are basically exposed directly to the internet.
+    # Another thing we must use is proxy-protocol, which forwards the client's ip to the services.
+    labels:
+      - "traefik.enable=true"
+      # imap
+      - "traefik.tcp.routers.imap.entrypoints=imap"
+      - "traefik.tcp.routers.imap.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.imap.service=imap"
+      - "traefik.tcp.services.imap.loadbalancer.server.port=10993"
+      - "traefik.tcp.services.imap.loadbalancer.proxyprotocol.version=2"
+      # smtpsecure
+      - "traefik.tcp.routers.smtpsecure.entrypoints=smtpsecure"
+      - "traefik.tcp.routers.smtpsecure.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.smtpsecure.service=smtpsecure"
+      - "traefik.tcp.services.smtpsecure.loadbalancer.server.port=10465"
+      - "traefik.tcp.services.smtpsecure.loadbalancer.proxyprotocol.version=2"
+      # smtp
+      - "traefik.tcp.routers.smtp.entrypoints=smtp"
+      - "traefik.tcp.routers.smtp.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.smtp.service=smtp"
+      - "traefik.tcp.services.smtp.loadbalancer.server.port=10025"
+      - "traefik.tcp.services.smtp.loadbalancer.proxyprotocol.version=2"
+      # dashboard (optional)
+      - "traefik.http.routers.dashboard.rule=Host(`mail.example.com`) && PathPrefix(`/dashboard`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=certresolver"
+      - "traefik.http.routers.dashboard.service=dashboard"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
