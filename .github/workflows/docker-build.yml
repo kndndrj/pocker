@@ -31,6 +31,10 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
+        name: Get Short Commit SHA
+        id: vars
+        run: echo "::set-output name=sha_short::$(echo ${{ github.sha }} | head -c 10)"
+      -
         name: Build and Push Basic Server
         uses: docker/build-push-action@v3
         with:
@@ -40,6 +44,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}-server:latest
             ghcr.io/${{ github.repository }}-server:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}-server:${{ steps.vars.outputs.sha_short }}
       -
         name: Build and Push Server with Dashboard
         uses: docker/build-push-action@v3
@@ -50,6 +55,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}-server-dashboard:latest
             ghcr.io/${{ github.repository }}-server-dashboard:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}-server-dashboard:${{ steps.vars.outputs.sha_short }}
       -
         name: Build and Push Client
         uses: docker/build-push-action@v3
@@ -59,3 +65,4 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}-client:latest
             ghcr.io/${{ github.repository }}-client:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}-client:${{ steps.vars.outputs.sha_short }}
