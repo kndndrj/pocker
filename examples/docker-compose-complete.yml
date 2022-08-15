@@ -54,10 +54,11 @@ services:
       # opendkim keys
       - "./data/mailserver/keys:/etc/opendkim/keys"
     environment:
-      - SUBDOMAIN=mail
-      - DOMAIN=example.com
+      - POCKER_SUBDOMAIN=mail
+      - POCKER_DOMAIN=example.com
       - POCKER_PAGE_TITLE=Pocker Mail Dashboard
       - POCKER_LOGO_URL=https://blabla.com/image.png
+      - POCKER_TRUSTED_PROXIES=traefik # -- (same as traefik container_name)
     labels:
       - "traefik.enable=true"
       # imap

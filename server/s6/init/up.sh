@@ -2,8 +2,8 @@
 
 echo "info: Running Init script"
 
-if [ -z "$DOMAIN$SUBDOMAIN" ]; then
-    echo "error: No domain specified. Please set \$DOMAIN and \$SUBDOMAIN env variables and restart the container."
+if [ -z "$POCKER_DOMAIN" ] || [ -z "$POCKER_SUBDOMAIN" ]; then
+    echo "error: No domain specified. Please set \$POCKER_DOMAIN and \$POCKER_SUBDOMAIN env variables and restart the container."
     exit 1
 fi
 
@@ -22,9 +22,9 @@ echo "info: configuring mounted userfiles"
 ###################################
 ## KEY GENERATION                ##
 ###################################
-if [ ! -f /etc/opendkim/keys/"$SUBDOMAIN".private ]; then
-    echo "info: Opendkim keys for $SUBDOMAIN not found. Generating new ones."
-    opendkim-genkey -D /etc/opendkim/keys -d "$DOMAIN" -s "$SUBDOMAIN"
+if [ ! -f /etc/opendkim/keys/"$POCKER_SUBDOMAIN".private ]; then
+    echo "info: Opendkim keys for $POCKER_SUBDOMAIN not found. Generating new ones."
+    opendkim-genkey -D /etc/opendkim/keys -d "$POCKER_DOMAIN" -s "$POCKER_SUBDOMAIN"
 fi
 
 
@@ -68,12 +68,22 @@ fi
 ###################################
 echo "info: Templating config files"
 
-PROXY_IP="$(getent hosts traefik | cut -d ' ' -f 1)"
+# Translate any hostnames to ips
+for i in $POCKER_TRUSTED_PROXIES; do
+    IP="$i"
+    # If not ip address, try to translate it to hostname
+    if ! (echo "$IP" | grep -Eq "^([0-9]{1,3}\.){3}[0-9]{1,3}(/[0-9]{1,3})?$"); then
+        IP="$(getent hosts "$IP" | cut -d ' ' -f 1)"
+    fi
+    TRUSTED_PROXIES="$TRUSTED_PROXIES $IP"
+done
+# Strip whitespace
+TRUSTED_PROXIES="$(echo "$TRUSTED_PROXIES" | sed 's/^\s*//g; s/\s*$//g; s/\s\s*/ /g' )"
 
-export POCKER_DOMAIN="$DOMAIN"
-export POCKER_SUBDOMAIN="$SUBDOMAIN"
-export POCKER_MAIL_DOMAIN="$SUBDOMAIN.$DOMAIN"
-export POCKER_PROXY_IP="$PROXY_IP"
+export POCKER_DOMAIN
+export POCKER_SUBDOMAIN
+export POCKER_MAIL_DOMAIN="$POCKER_SUBDOMAIN.$POCKER_DOMAIN"
+export POCKER_TRUSTED_PROXIES="$TRUSTED_PROXIES"
 
 # Template the list of files
 for i in \
@@ -94,7 +104,7 @@ for i in \
     source="${i%%:*}"
     destination="${i#*:}"
     # shellcheck disable=SC2016 # we don't want these variables to expand
-    envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_PROXY_IP' < "$source" > "$destination"
+    envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_TRUSTED_PROXIES' < "$source" > "$destination"
 done
 
 

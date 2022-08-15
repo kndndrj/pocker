@@ -12,10 +12,11 @@ All longrun, oneshot and bundle services can be found in s6 directory.
 ## Configuration
 
 ### Environment Variables
-- `SUBDOMAIN` - your mail subdomain - example: `mail`
-- `DOMAIN` - your mail domain - example: `example.com`
+- `POCKER_SUBDOMAIN` - your mail subdomain - example: `mail`
+- `POCKER_DOMAIN` - your mail domain - example: `example.com`
 - `POCKER_PAGE_TITLE` - title of the optional dashboard - example: `Pocker Dashboard`
 - `POCKER_LOGO_URL` - link to the logo image of your choice - example: `https://some.website.com/image.png`
+- `POCKER_TRUSTED_PROXIES` - space separated list of trusted proxy ips or hostnames (usually a container name of proxy container on the same docker network) - example: `192.168.0.123 traefik haproxy`
 
 ### Volumes
 ###### Certificates
