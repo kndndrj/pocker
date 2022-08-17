@@ -26,7 +26,7 @@ if [ -n "$(ls /icons/logo.* 2>/dev/null)" ]; then
     echo "info: Configuring logo for all skins"
 
     # First icon
-    ICON="$(basename "$(ls /icons/logo.* | head -n 1)")"
+    ICON="$(basename "$(find /icons -maxdepth 1 -name "logo.*" -print -quit)")"
 
     # Copy icons
     for i in /var/www/html/skins/*; do
@@ -34,8 +34,8 @@ if [ -n "$(ls /icons/logo.* 2>/dev/null)" ]; then
     done
 
     # Change file types in HTML
-    for i in $(grep -wrl "roundcube_logo.png\|logo.svg" /var/www/html/*); do
-        sed -i "s/roundcube_logo\.png/$ICON/g; s/logo\.svg/$ICON/g" "$i"
+    grep -wrl "roundcube_logo.png\|logo.svg" /var/www/html/* | while IFS= read -r line; do
+        sed -i "s/roundcube_logo\.png/$ICON/g; s/logo\.svg/$ICON/g" "$line"
     done
 
     # Configure favicon

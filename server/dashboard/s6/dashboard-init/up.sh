@@ -1,4 +1,5 @@
 #!/command/with-contenv sh
+# shellcheck shell=sh
 
 echo "info: Running Dashboard Init script"
 
@@ -27,7 +28,9 @@ export POCKER_PAGE_TITLE
 
 # shellcheck disable=SC2016 # we don't want these variables to expand
 TEMP="$(mktemp)"
+# shellcheck disable=SC2016 # we don't want these variables to expand
 envsubst '$POCKER_PAGE_TITLE' < /opt/dashboard/index.html > "$TEMP"
 cat "$TEMP" > /opt/dashboard/index.html
+# shellcheck disable=SC2016 # we don't want these variables to expand
 envsubst '$POCKER_PAGE_TITLE' < /opt/dashboard/response.html > "$TEMP"
 cat "$TEMP" > /opt/dashboard/response.html

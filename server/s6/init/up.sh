@@ -1,4 +1,5 @@
 #!/command/with-contenv sh
+# shellcheck shell=sh
 
 echo "info: Running Init script"
 
