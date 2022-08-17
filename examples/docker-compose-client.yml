@@ -24,6 +24,7 @@ services:
       - ROUNDCUBEMAIL_SMTP_PORT=465
       - ROUNDCUBEMAIL_LOGO_URL=https://blabla.com/image.png
       - ROUNDCUBEMAIL_PAGE_TITLE=Pocker Mail
+      - ROUNDCUBEMAIL_DEFAULT_MAIL_DOMAIN=%d
     # If NOT using Traefik:
     ports:
       - "8080:80"
