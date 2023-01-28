@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Route stderr to stdout
-exec 2>&1
-
 SOCKET="/var/spool/postfix/spamass/spamass.sock"
 
 # Create socket directory with spamass-milter as an owner
@@ -19,4 +16,4 @@ change_permissions &
 
 # default user: spamass-milter
 # ignore 127.0.0.1
-exec /usr/sbin/spamass-milter -p "$SOCKET" -u spamass-milter -i 127.0.0.1
+exec /usr/sbin/spamass-milter -p "$SOCKET" -u spamass-milter -i "127.0.0.1" 2>&1 | sed --unbuffered "s/^/\[spamass-milter\]: /g"

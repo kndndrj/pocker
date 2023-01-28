@@ -1,6 +1,4 @@
 #!/command/execlineb -P
 
-# Route stderr to stdout
-fdmove -c 2 1
-
-/usr/sbin/spamd --create-prefs --max-children 5 --helper-home-dir --syslog=null
+# Pipe stderr to stdout and add prefix
+pipeline { fdmove -c 2 1 /usr/sbin/spamd --create-prefs --max-children 5 --helper-home-dir --syslog=stderr } sed --unbuffered "s/^/\[spamassassin\]: /g"

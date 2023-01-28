@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Route stderr to stdout
-exec 2>&1
-
 # Watch userfiles files for changes
 inotifywait -mq -e modify -e moved_to /etc/ | while read line; do
         file="$(echo "$line" | cut -d " " -f 3)"
