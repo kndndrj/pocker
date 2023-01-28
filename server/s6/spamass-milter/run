@@ -1,15 +1,23 @@
 #!/bin/sh
 
-trap "service spamass-milter stop" 2 # SIGINT
-trap "service spamass-milter stop" 15 # SIGTERM
-trap "service spamass-milter force-reload" 1 # SIGHUP
+# Route stderr to stdout
+exec 2>&1
 
-service spamass-milter start
+SOCKET="/var/spool/postfix/spamass/spamass.sock"
 
-# Wait for pid to become available
-sleep 3
+# Create socket directory with spamass-milter as an owner
+mkdir -p "$(dirname "$SOCKET")"
+chown spamass-milter "$(dirname "$SOCKET")"
 
-# wait until spamass-milter is dead (triggered by trap)
-while kill -0 "$(cat /var/run/spamass/spamass.pid)"; do
-    sleep 5
-done
+# Change permissions of the socket after it has been created
+change_permissions() {
+    sleep 1
+    chmod 0660 "$SOCKET"
+    chown postfix:postfix "$SOCKET"
+}
+change_permissions &
+
+# default user: spamass-milter
+# ignore 127.0.0.1
+exec /usr/sbin/spamass-milter -p "$SOCKET" -u spamass-milter -i 127.0.0.1
+
