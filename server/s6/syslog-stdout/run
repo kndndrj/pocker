@@ -1,0 +1,8 @@
+#!/command/execlineb -P
+
+# Route stderr to stdout
+fdmove -c 2 1
+
+# Route all syslogs to container's stdout
+s6-envuidgid -D 32760:32760: -- syslog
+s6-socklog -U -t3000

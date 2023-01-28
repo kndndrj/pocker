@@ -22,10 +22,8 @@ RUN apt-get update -y \
 # Install s6-overlay
 ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.0.1/s6-overlay-noarch.tar.xz /tmp
 ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.0.1/s6-overlay-x86_64.tar.xz /tmp
-ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.0.1/syslogd-overlay-noarch.tar.xz /tmp
 RUN    tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz \
-    && tar -C / -Jxpf /tmp/syslogd-overlay-noarch.tar.xz
+    && tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
 
 # Copy s6 service scripts
 COPY ./s6/ /etc/s6-overlay/s6-rc.d/

@@ -3,4 +3,4 @@
 # Route stderr to stdout
 fdmove -c 2 1
 
-/usr/sbin/spamd --create-prefs --max-children 5 --helper-home-dir
+/usr/sbin/spamd --create-prefs --max-children 5 --helper-home-dir --syslog=null

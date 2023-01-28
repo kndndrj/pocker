@@ -20,4 +20,3 @@ change_permissions &
 # default user: spamass-milter
 # ignore 127.0.0.1
 exec /usr/sbin/spamass-milter -p "$SOCKET" -u spamass-milter -i 127.0.0.1
-
