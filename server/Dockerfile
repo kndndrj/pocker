@@ -15,6 +15,7 @@ RUN apt-get update -y \
         spamc \
         opendkim \
         opendkim-tools \
+        opendmarc \
         gettext-base \
         xz-utils \
         inotify-tools
@@ -43,9 +44,6 @@ RUN    mkdir -p \
 # Copy mail services configs (move them to their places with init service)
 COPY ./config/ /etc/mailconfigs/
 
-# Create a dmarc user
-RUN useradd -m -G mail dmarc
-
 # Run s6
 ENTRYPOINT ["/init"]
 
@@ -58,6 +56,9 @@ FROM base AS dashboard
 # Install Extra packages
 RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
         curl
+
+# Create a user for auth
+RUN useradd auth_checker
 
 # Make icons directory
 RUN mkdir -p /icons

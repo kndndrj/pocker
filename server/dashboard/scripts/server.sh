@@ -30,11 +30,11 @@ fn_change_pw () {
     pass_old="$2"
     pass_new="$3"
 
-    # Authenticate user - dmarc as dummy user
+    # Authenticate user - auth_checker
     temp="$(mktemp)"
     echo "$pass_old" > "$temp"
     chmod +r "$temp"
-    if ! (su dmarc -c "cat $temp | su $user" 2>/dev/null);then
+    if ! (su auth_checker -c "cat $temp | su $user" 2>/dev/null);then
         rm -rf "$temp"
         echo "error: wrong password or the user doesn't exist!"
         return 1
@@ -54,11 +54,11 @@ fn_remove () {
     user="$1"
     pass="$2"
 
-    # Authenticate user - dmarc as dummy user
+    # Authenticate user - auth_checker
     temp="$(mktemp)"
     echo "$pass" > "$temp"
     chmod +r "$temp"
-    if ! (su dmarc -c "cat $temp | su $user" 2>/dev/null);then
+    if ! (su auth_checker -c "cat $temp | su $user" 2>/dev/null);then
         rm -rf "$temp"
         echo "error: wrong password or the user doesn't exist!"
         return 1

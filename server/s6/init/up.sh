@@ -100,6 +100,8 @@ for i in \
 "/etc/mailconfigs/opendkim/signingtable:/etc/opendkim/signingtable" \
 "/etc/mailconfigs/opendkim/trustedhosts:/etc/opendkim/trustedhosts" \
 \
+"/etc/mailconfigs/opendmarc/opendmarc.conf:/etc/opendmarc.conf" \
+\
 "/etc/mailconfigs/sieve/default.sieve:/var/lib/dovecot/sieve/default.sieve" \
 ; do
     source="${i%%:*}"
