@@ -4,13 +4,12 @@ version: '3.3'
 services:
 
   mailserver:
-    # image: ghcr.io/kndndrj/pocker-server:latest # -- without dashboard
     image: ghcr.io/kndndrj/pocker-server-dashboard:latest # -- with dashboard
+    #image: ghcr.io/kndndrj/pocker-server:latest # -- without dashboard
     container_name: mailserver
     volumes:
-      # Letsencrypt certs
-      - "/etc/letsencrypt:/etc/letsencrypt:ro" # -- if using certbot certs from host
-      #- "./data/letsencrypt:/letsencrypt:ro" # -- if using traefik certs
+      # Letsencrypt certs (if using traefik, use something like traefik-certs-dumper)
+      - "/etc/letsencrypt/live:/etc/letsencrypt/live:ro"
       # Mail direcotry
       - "./data/mailserver/mail:/var/mail"
       # User data

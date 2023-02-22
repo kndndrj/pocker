@@ -29,12 +29,6 @@ RUN    tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
 # Copy s6 service scripts
 COPY ./s6/ /etc/s6-overlay/s6-rc.d/
 
-# Install traefik-certs-dumper
-ADD https://github.com/ldez/traefik-certs-dumper/releases/download/v2.8.1/traefik-certs-dumper_v2.8.1_linux_amd64.tar.gz /tmp/cert-dumper.tar.gz
-RUN    tar -xf /tmp/cert-dumper.tar.gz -C /tmp/ \
-    && mv /tmp/traefik-certs-dumper /usr/local/bin/ \
-    && chmod +x /usr/local/bin/traefik-certs-dumper
-
 # make required directories
 RUN    mkdir -p \
            /etc/opendkim/keys \

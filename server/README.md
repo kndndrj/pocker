@@ -3,9 +3,9 @@
 Mail server docker image made of multiple services supervized by s6:
 - Postfix
 - Dovecot
-- Spam Assassin
+- SpamAssassin
 - OpenDKIM
-- traefik-certs-dumper
+- OpenDMARC
 - UI dashboard (optionally)
 All longrun, oneshot and bundle services can be found in s6 directory.
 
@@ -20,9 +20,8 @@ All longrun, oneshot and bundle services can be found in s6 directory.
 
 ### Volumes
 ###### Certificates
-The first thing you must provide yourself as a volume is SSL certificates. you have one of 2 options:
-- `/letsencrypt` - traefik cert directory - mount the same directory that traefik uses to store letsencrypt certifcates here.
-- `/etc/letsencrypt` - "normal" letsencrypt directory - mount this directory if you are using certbot (or similar) to provide certs with on the host.
+Pocker expects certs in the same location and same location that certbot provides:
+- `/etc/letsencrypt/live` - letsencrypt directory - mount this directory if you are using certbot (or similar) to provide certs with on the host.
 
 ###### Mail
 - `/var/mail` - mount this if you want persistent mail (you probably do)
@@ -40,7 +39,7 @@ For more information refer to the example `docker-compose.yml` file(s).
 If you chose to use the "-dashboard" variant of server image, you can use *it* to create new users. Otherwise, you can use basic linux utils to do the job. e.g.:
 ```sh
 # Make sure the user is in the mail group
-$ docker exec -it useradd -m -G mail john
+docker exec -it useradd -m -G mail john
 # add password to the user
-$ docker exec -it passwd john
+docker exec -it passwd john
 ```

@@ -6,9 +6,9 @@ The complete mail server consists of server and client parts.
 The server part is a docker image made of multiple services supervized by s6. It includes:
 - Postfix
 - Dovecot
-- Spam Assassin
+- SpamAssassin
 - OpenDKIM
-- traefik-certs-dumper
+- OpenDMARC
 - UI dashboard (optionally)
 
 More information can be found in the [server's](./server/) README.md.
