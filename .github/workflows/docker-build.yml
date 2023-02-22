@@ -16,53 +16,48 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-      -
-        name: Set up Docker Buildx
+
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      -
-        name: Login to GitHub Container Registry
+
+      - name: Login to GitHub Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Get Short Commit SHA
+
+      - name: Get Short Commit SHA
         id: vars
         run: echo "::set-output name=sha_short::$(echo ${{ github.sha }} | head -c 10)"
-      -
-        name: Build and Push Basic Server
+
+      - name: Get Major version
+        id: vars
+        run: echo "::set-output name=major_ver::$(ver=\"${{ github.ref_name }}\"; echo ${ver%.*})"
+
+      - name: Build and Push Base Image
         uses: docker/build-push-action@v3
         with:
-          context: "{{defaultContext}}:server"
+          context: "."
           target: base
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ghcr.io/${{ github.repository }}-server:latest
-            ghcr.io/${{ github.repository }}-server:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}-server:${{ steps.vars.outputs.sha_short }}
-      -
-        name: Build and Push Server with Dashboard
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.major_ver }}
+            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.sha_short }}
+
+      - name: Build and Push Dashboard Image
         uses: docker/build-push-action@v3
         with:
-          context: "{{defaultContext}}:server"
+          context: "."
           target: dashboard
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ghcr.io/${{ github.repository }}-server-dashboard:latest
-            ghcr.io/${{ github.repository }}-server-dashboard:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}-server-dashboard:${{ steps.vars.outputs.sha_short }}
-      -
-        name: Build and Push Client
-        uses: docker/build-push-action@v3
-        with:
-          context: "{{defaultContext}}:client"
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ghcr.io/${{ github.repository }}-client:latest
-            ghcr.io/${{ github.repository }}-client:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}-client:${{ steps.vars.outputs.sha_short }}
+            ghcr.io/${{ github.repository }}:latest-dashboard
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}-dashboard
+            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.major_ver }}-dashboard
+            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.sha_short }}-dashboard

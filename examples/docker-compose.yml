@@ -42,11 +42,12 @@ services:
       - "./data/letsencrypt:/letsencrypt"
 
   mailserver:
-    image: ghcr.io/kndndrj/pocker-server-dashboard:latest
+    image: ghcr.io/kndndrj/pocker:latest-dashboard # -- with dashboard
+    #image: ghcr.io/kndndrj/pocker:latest # -- without dashboard
     container_name: mailserver
     volumes:
-      # Letsencrypt certs from traefik
-      - "./data/letsencrypt:/letsencrypt:ro"
+      # Letsencrypt certs (if using traefik, use something like traefik-certs-dumper)
+      - "/etc/letsencrypt/live:/etc/letsencrypt/live:ro"
       # Mail direcotry
       - "./data/mailserver/mail:/var/mail"
       # User data
@@ -58,7 +59,16 @@ services:
       - POCKER_DOMAIN=example.com
       - POCKER_PAGE_TITLE=Pocker Mail Dashboard
       - POCKER_LOGO_URL=https://blabla.com/image.png
-      - POCKER_TRUSTED_PROXIES=traefik # -- (same as traefik container_name)
+      - POCKER_TRUSTED_PROXIES=traefik # -- If using Traefik (same as traefik container_name)
+    # If NOT using Traefik:
+    ports:
+      - "993:993"
+      - "465:465"
+      - "25:25"
+    # If using Traefik:
+    # Note that traefik doesn't support IMAP or SMTP, so we use a passthrough connection,
+    # which means the services are basically exposed directly to the internet.
+    # Another thing - we must use is proxy-protocol, which forwards the client's ip to the services.
     labels:
       - "traefik.enable=true"
       # imap
@@ -79,7 +89,7 @@ services:
       - "traefik.tcp.routers.smtp.service=smtp"
       - "traefik.tcp.services.smtp.loadbalancer.server.port=10025"
       - "traefik.tcp.services.smtp.loadbalancer.proxyprotocol.version=2"
-      # dashboard
+      # dashboard (optional)
       - "traefik.http.routers.dashboard.rule=Host(`mail.example.com`) && PathPrefix(`/dashboard`)"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.tls.certresolver=certresolver"
@@ -87,7 +97,7 @@ services:
       - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
 
   roundcubemail:
-    image: ghcr.io/kndndrj/pocker-client:latest
+    image: roundcube/roundcubemail:latest
     container_name: roundcubemail
     restart: unless-stopped
     depends_on:
@@ -105,9 +115,6 @@ services:
       - ROUNDCUBEMAIL_DEFAULT_PORT=993
       - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.example.com
       - ROUNDCUBEMAIL_SMTP_PORT=465
-      - ROUNDCUBEMAIL_LOGO_URL=https://blabla.com/image.png
-      - ROUNDCUBEMAIL_PAGE_TITLE=Pocker Mail
-      - ROUNDCUBEMAIL_DEFAULT_MAIL_DOMAIN=%d
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.roundcube.rule=Host(`mail.example.com`)"
