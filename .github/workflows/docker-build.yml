@@ -44,6 +44,12 @@ jobs:
           context: "."
           target: base
           push: ${{ github.event_name != 'pull_request' }}
+          platforms: |
+            linux/amd64
+            linux/arm64
+            linux/arm/v7
+            linux/arm/v6
+            linux/386
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
@@ -56,6 +62,12 @@ jobs:
           context: "."
           target: dashboard
           push: ${{ github.event_name != 'pull_request' }}
+          platforms: |
+            linux/amd64
+            linux/arm64
+            linux/arm/v7
+            linux/arm/v6
+            linux/386
           tags: |
             ghcr.io/${{ github.repository }}:latest-dashboard
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}-dashboard

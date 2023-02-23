@@ -2,10 +2,12 @@
 # Base Image
 #
 FROM debian:11-slim as base
+ARG S6_OVERLAY_VERSION=3.1.4.1
+ARG TARGETPLATFORM
 
 # Update/upgrade and install packages
 RUN apt-get update -y \
-    && DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
+ && DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
         postfix \
         postfix-pcre \
         dovecot-imapd \
@@ -18,22 +20,31 @@ RUN apt-get update -y \
         opendmarc \
         gettext-base \
         xz-utils \
-        inotify-tools
+        inotify-tools \
+        ca-certificates \
+        curl
 
 # Install s6-overlay
-ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.0.1/s6-overlay-noarch.tar.xz /tmp
-ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.0.1/s6-overlay-x86_64.tar.xz /tmp
-RUN    tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
+RUN case ${TARGETPLATFORM} in \
+        "linux/amd64")   S6_OVERLAY_ARCH=x86_64  ;; \
+        "linux/arm64")   S6_OVERLAY_ARCH=aarch64 ;; \
+        "linux/arm/v7")  S6_OVERLAY_ARCH=arm     ;; \
+        "linux/arm/v6")  S6_OVERLAY_ARCH=armhf   ;; \
+        "linux/386")     S6_OVERLAY_ARCH=i686    ;; \
+    esac \
+ && curl -sfLo /tmp/s6-overlay-noarch.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz \
+ && curl -sfLo /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz \
+ && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
+ && tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
 
 # Copy s6 service scripts
 COPY ./s6/ /etc/s6-overlay/s6-rc.d/
 
 # make required directories
-RUN    mkdir -p \
-           /etc/opendkim/keys \
-           /var/lib/dovecot/sieve \
-    && chown -R opendkim:opendkim /etc/opendkim
+RUN mkdir -p \
+        /etc/opendkim/keys \
+        /var/lib/dovecot/sieve \
+ && chown -R opendkim:opendkim /etc/opendkim
 
 # Copy mail services configs (move them to their places with init service)
 COPY ./config/ /etc/mailconfigs/
@@ -46,10 +57,7 @@ ENTRYPOINT ["/init"]
 # Image With Dashboard
 #
 FROM base AS dashboard
-
-# Install Extra packages
-RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
-        curl
+ARG SHELL2HTTP_VERSION=1.15.0
 
 # Create a user for auth
 RUN useradd auth_checker
@@ -58,10 +66,17 @@ RUN useradd auth_checker
 RUN mkdir -p /icons
 
 # Install shell2html
-ADD https://github.com/msoap/shell2http/releases/download/v1.14.1/shell2http_1.14.1_linux_amd64.tar.gz /tmp
-RUN    tar -xf /tmp/shell2http_1.14.1_linux_amd64.tar.gz -C /tmp/ \
-    && mv /tmp/shell2http /usr/local/bin/ \
-    && chmod +x /usr/local/bin/shell2http
+RUN case ${TARGETPLATFORM} in \
+        "linux/amd64")   SHELL2HTTP_ARCH=amd64   ;; \
+        "linux/arm64")   SHELL2HTTP_ARCH=arm64   ;; \
+        "linux/arm/v7")  SHELL2HTTP_ARCH=arm     ;; \
+        "linux/arm/v6")  SHELL2HTTP_ARCH=armv6   ;; \
+        "linux/386")     SHELL2HTTP_ARCH=386     ;; \
+    esac \
+ && curl -sfLo /tmp/shell2http.tar.gz https://github.com/msoap/shell2http/releases/download/v${SHELL2HTTP_VERSION}/shell2http_${SHELL2HTTP_VERSION}_linux_${SHELL2HTTP_ARCH}.tar.gz \
+ && tar -xf /tmp/shell2http.tar.gz -C /tmp/ \
+ && mv /tmp/shell2http /usr/local/bin/ \
+ && chmod +x /usr/local/bin/shell2http
 
 # Copy dashboard files
 COPY ./dashboard/scripts /opt/dashboard
