@@ -41,7 +41,7 @@ jobs:
       - name: Build and Push Base Image
         uses: docker/build-push-action@v3
         with:
-          context: "."
+          context: "{{ defaultContext }}"
           target: base
           push: ${{ github.event_name != 'pull_request' }}
           platforms: |
@@ -59,7 +59,7 @@ jobs:
       - name: Build and Push Dashboard Image
         uses: docker/build-push-action@v3
         with:
-          context: "."
+          context: "{{ defaultContext }}"
           target: dashboard
           push: ${{ github.event_name != 'pull_request' }}
           platforms: |
