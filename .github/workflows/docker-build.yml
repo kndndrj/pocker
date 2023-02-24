@@ -31,12 +31,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get Short Commit SHA
-        id: vars
-        run: echo "::set-output name=sha_short::$(echo ${{ github.sha }} | head -c 10)"
+        id: sha_short
+        run: echo "value=$(echo ${{ github.sha }} | head -c 10)" >> "$GITHUB_OUTPUT"
 
       - name: Get Major version
-        id: vars
-        run: echo "::set-output name=major_ver::$(ver=\"${{ github.ref_name }}\"; echo ${ver%.*})"
+        id: major_version
+        run: echo "value=$(ver=${{ github.ref_name }}; echo ${ver%.*})" >> "$GITHUB_OUTPUT"
 
       - name: Build and Push Base Image
         uses: docker/build-push-action@v3
@@ -53,8 +53,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.major_ver }}
-            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.sha_short }}
+            ghcr.io/${{ github.repository }}:${{ steps.major_version.outputs.value }}
+            ghcr.io/${{ github.repository }}:${{ steps.sha_short.outputs.value }}
 
       - name: Build and Push Dashboard Image
         uses: docker/build-push-action@v3
@@ -71,5 +71,5 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest-dashboard
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}-dashboard
-            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.major_ver }}-dashboard
-            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.sha_short }}-dashboard
+            ghcr.io/${{ github.repository }}:${{ steps.major_version.outputs.value }}-dashboard
+            ghcr.io/${{ github.repository }}:${{ steps.sha_short.outputs.value }}-dashboard
