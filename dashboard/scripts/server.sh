@@ -12,12 +12,12 @@ fn_create () {
         return 1
     fi
     # Add user
-    if ! (useradd -m -G mail "$user"); then
+    if ! (adduser -D -G mail "$user"); then
         echo "error: could not create user \"$user\""
         return 1
     fi
     # Add password
-    if ! (echo "$user:$pass" | chpasswd); then
+    if ! (echo "$user:$pass" | chpasswd > /dev/null); then
         echo "error: could not create user \"$user\""
         return 1
     fi
@@ -42,7 +42,7 @@ fn_change_pw () {
     rm -rf "$temp"
 
     # Change password
-    if ! (echo "$user:$pass_new" | chpasswd); then
+    if ! (echo "$user:$pass_new" | chpasswd > /dev/null); then
         echo "error: could not create user \"$user\""
         return 1
     fi
@@ -67,7 +67,7 @@ fn_remove () {
 
     # Remove user
     rm -rf /var/mail/"${user:?}" /home/"${user:?}"
-    if ! (userdel "$user"); then
+    if ! (deluser "$user"); then
         echo "error: could not remove user \"$user\""
         return 1
     fi

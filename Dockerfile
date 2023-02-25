@@ -19,13 +19,15 @@ RUN apk add --update-cache --no-cache \
         gettext \
         inotify-tools \
         libmilter-dev \
-	gpg-agent \
-        curl
+        gpg-agent \
+    # dashboard:
+        curl \
+        util-linux-login
 
 # Compile spamass-milter
 RUN apk --no-cache add --virtual .fetch-deps \
         libstdc++ \
-	libgcc \
+        libgcc \
         autoconf \
         automake \
         build-base \

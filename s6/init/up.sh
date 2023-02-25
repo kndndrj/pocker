@@ -13,11 +13,10 @@ fi
 ## USER FILES (IF PROVIDED)      ##
 ###################################
 echo "info: configuring mounted userfiles"
-touch /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/aliases
+touch /etc/passwd /etc/shadow /etc/group /etc/aliases
 [ -f /etc/userfiles/passwd ]  && [ -s /etc/userfiles/passwd ]  && cat /etc/userfiles/passwd > /etc/passwd
 [ -f /etc/userfiles/shadow ]  && [ -s /etc/userfiles/shadow ]  && cat /etc/userfiles/shadow > /etc/shadow
 [ -f /etc/userfiles/group ]   && [ -s /etc/userfiles/group ]   && cat /etc/userfiles/group > /etc/group
-[ -f /etc/userfiles/gshadow ] && [ -s /etc/userfiles/gshadow ] && cat /etc/userfiles/gshadow > /etc/gshadow
 [ -f /etc/userfiles/aliases ] && [ -s /etc/userfiles/aliases ] && cat /etc/userfiles/aliases > /etc/aliases
 
 

@@ -26,7 +26,7 @@ inet_protocols = all
 
 header_checks = regexp:/etc/postfix/header_checks
 
-mailbox_command = /usr/libexec/dovecot/deliver 
+mailbox_command = /usr/libexec/dovecot/deliver
 
 
 # TLS
