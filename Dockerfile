@@ -5,8 +5,8 @@ FROM alpine:latest as base
 ARG S6_OVERLAY_VERSION=3.1.4.1
 ARG TARGETPLATFORM=linux/amd64
 
-# Update/upgrade and install packages
-RUN apk add --update-cache --no-cache \
+# Install packages
+RUN apk add --no-cache \
         postfix \
         postfix-pcre \
         dovecot \
@@ -17,10 +17,7 @@ RUN apk add --update-cache --no-cache \
         opendkim \
         opendkim-utils \
         opendmarc \
-        gettext \
-    # dashboard:
-        curl \
-        util-linux-login
+        gettext
 
 # Compile spamass-milter
 RUN apk --no-cache add --virtual .fetch-deps \
@@ -30,7 +27,7 @@ RUN apk --no-cache add --virtual .fetch-deps \
         autoconf \
         automake \
         build-base \
- && curl -sfLo master.tar.gz https://github.com/andybalholm/spamass-milter/archive/master.tar.gz \
+ && wget -q https://github.com/andybalholm/spamass-milter/archive/master.tar.gz -O master.tar.gz \
  && tar -xvf master.tar.gz \
  && cd spamass-milter-master \
  && ./autogen.sh \
@@ -49,14 +46,14 @@ RUN case ${TARGETPLATFORM} in \
         "linux/arm/v6")  S6_OVERLAY_ARCH=armhf   ;; \
         "linux/386")     S6_OVERLAY_ARCH=i686    ;; \
     esac \
- && curl -sfLo /tmp/s6-overlay-noarch.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz \
- && curl -sfLo /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz \
+ && wget -q https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz -O /tmp/s6-overlay-noarch.tar.xz \
+ && wget -q https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz -O /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz \
  && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
  && tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
 
 # Install the public suffix list
 RUN mkdir -p /usr/share/publicsuffix \
- && curl -sfLo /usr/share/publicsuffix/public_suffix_list.dat https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat
+ && wget -q https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat -O /usr/share/publicsuffix/public_suffix_list.dat
 
 # Copy s6 service scripts
 COPY ./s6/ /etc/s6-overlay/s6-rc.d/
@@ -75,6 +72,10 @@ FROM base AS dashboard
 ARG SHELL2HTTP_VERSION=1.15.0
 ARG TARGETPLATFORM=linux/amd64
 
+# Install extra packages
+RUN apk add --no-cache \
+        util-linux-login
+
 # Create a user for auth
 RUN adduser -u 112 -D auth_checker
 
@@ -89,7 +90,7 @@ RUN case ${TARGETPLATFORM} in \
         "linux/arm/v6")  SHELL2HTTP_ARCH=armv6   ;; \
         "linux/386")     SHELL2HTTP_ARCH=386     ;; \
     esac \
- && curl -sfLo /tmp/shell2http.tar.gz https://github.com/msoap/shell2http/releases/download/v${SHELL2HTTP_VERSION}/shell2http_${SHELL2HTTP_VERSION}_linux_${SHELL2HTTP_ARCH}.tar.gz \
+ && wget -q https://github.com/msoap/shell2http/releases/download/v${SHELL2HTTP_VERSION}/shell2http_${SHELL2HTTP_VERSION}_linux_${SHELL2HTTP_ARCH}.tar.gz -O /tmp/shell2http.tar.gz \
  && tar -xf /tmp/shell2http.tar.gz -C /tmp/ \
  && mv /tmp/shell2http /usr/local/bin/ \
  && chmod +x /usr/local/bin/shell2http

@@ -12,7 +12,7 @@ echo "info: Running Dashboard Init script"
 # if link provided, download the image
 if [ -n "$POCKER_LOGO_URL" ]; then
         echo "info: trying to download provided logo"
-        if ! (curl --silent -o /icons/logo "$POCKER_LOGO_URL"); then
+        if ! (wget -q "$POCKER_LOGO_URL" -O /icons/logo); then
                 echo "warning: could not download the provided icon"
         fi
 fi
