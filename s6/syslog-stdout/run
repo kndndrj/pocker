@@ -3,4 +3,4 @@
 # Route all syslogs to container's stdout
 # Pipe stderr to stdout and add prefix
 s6-envuidgid -D 32760:32760: -- syslog
-pipeline { fdmove -c 2 1 s6-socklog -U -t3000 } sed --unbuffered "s/^/\[syslog-stdout\]: /g"
+pipeline { fdmove -c 2 1 s6-socklog -U -t3000 } sed -e "s/^/\[syslog-stdout\]: /g"

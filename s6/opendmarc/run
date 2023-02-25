@@ -1,4 +1,4 @@
 #!/command/execlineb -P
 
 # Pipe stderr to stdout and add prefix
-pipeline { fdmove -c 2 1 /usr/sbin/opendmarc -f } sed --unbuffered "s/^/\[opendmarc\]: /g"
+pipeline { fdmove -c 2 1 /usr/sbin/opendmarc -f -c /etc/opendmarc.conf } sed -e "s/^/\[opendmarc\]: /g"

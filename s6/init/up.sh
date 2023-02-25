@@ -13,6 +13,7 @@ fi
 ## USER FILES (IF PROVIDED)      ##
 ###################################
 echo "info: configuring mounted userfiles"
+touch /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/aliases
 [ -f /etc/userfiles/passwd ]  && [ -s /etc/userfiles/passwd ]  && cat /etc/userfiles/passwd > /etc/passwd
 [ -f /etc/userfiles/shadow ]  && [ -s /etc/userfiles/shadow ]  && cat /etc/userfiles/shadow > /etc/shadow
 [ -f /etc/userfiles/group ]   && [ -s /etc/userfiles/group ]   && cat /etc/userfiles/group > /etc/group
@@ -79,7 +80,7 @@ for i in $POCKER_TRUSTED_PROXIES; do
     TRUSTED_PROXIES="$TRUSTED_PROXIES $IP"
 done
 # Strip whitespace
-TRUSTED_PROXIES="$(echo "$TRUSTED_PROXIES" | sed 's/^\s*//g; s/\s*$//g; s/\s\s*/ /g' )"
+TRUSTED_PROXIES="$(echo "$TRUSTED_PROXIES" | sed -e 's/^\s*//g; s/\s*$//g; s/\s\s*/ /g')"
 
 export POCKER_DOMAIN
 export POCKER_SUBDOMAIN
@@ -93,7 +94,7 @@ for i in \
 "/etc/mailconfigs/postfix/header_checks:/etc/postfix/header_checks" \
 \
 "/etc/mailconfigs/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf" \
-"/etc/mailconfigs/dovecot/pamd:/etc/pam.d/dovecot" \
+"/etc/mailconfigs/dovecot/default.sieve:/var/lib/dovecot/sieve/default.sieve" \
 \
 "/etc/mailconfigs/opendkim/opendkim.conf:/etc/opendkim.conf" \
 "/etc/mailconfigs/opendkim/keytable:/etc/opendkim/keytable" \
@@ -101,11 +102,11 @@ for i in \
 "/etc/mailconfigs/opendkim/trustedhosts:/etc/opendkim/trustedhosts" \
 \
 "/etc/mailconfigs/opendmarc/opendmarc.conf:/etc/opendmarc.conf" \
-\
-"/etc/mailconfigs/sieve/default.sieve:/var/lib/dovecot/sieve/default.sieve" \
 ; do
     source="${i%%:*}"
     destination="${i#*:}"
+
+    mkdir -p "$(dirname "$destination")"
     # shellcheck disable=SC2016 # we don't want these variables to expand
     envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_TRUSTED_PROXIES' < "$source" > "$destination"
 done

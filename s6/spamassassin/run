@@ -1,4 +1,7 @@
 #!/command/execlineb -P
 
+# Update rules
+foreground { /usr/bin/sa-update }
+
 # Pipe stderr to stdout and add prefix
-pipeline { fdmove -c 2 1 /usr/sbin/spamd --create-prefs --max-children 5 --helper-home-dir --syslog=stderr } sed --unbuffered "s/^/\[spamassassin\]: /g"
+pipeline { fdmove -c 2 1 /usr/sbin/spamd --create-prefs --max-children 5 --helper-home-dir --syslog=stderr } sed -e "s/^/\[spamassassin\]: /g"

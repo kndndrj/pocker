@@ -1,4 +1,4 @@
 #!/command/execlineb -P
 
 # Pipe stderr to stdout and add prefix
-pipeline { fdmove -c 2 1 /usr/sbin/postfix "start-fg" } sed --unbuffered "s/^/\[postfix\]: /g"
+pipeline { fdmove -c 2 1 /usr/sbin/postfix "start-fg" } sed -e "s/^/\[postfix\]: /g"

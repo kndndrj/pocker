@@ -9,8 +9,8 @@ compatibility_level = 2
 
 
 # Basic
-alias_maps = hash:/etc/aliases
-alias_database = hash:/etc/aliases
+alias_maps = lmdb:/etc/aliases
+alias_database = lmdb:/etc/aliases
 myhostname = ${POCKER_MAIL_DOMAIN}
 mydomain = ${POCKER_DOMAIN}
 myorigin = $myhostname
@@ -26,7 +26,7 @@ inet_protocols = all
 
 header_checks = regexp:/etc/postfix/header_checks
 
-mailbox_command = /usr/lib/dovecot/deliver
+mailbox_command = /usr/libexec/dovecot/deliver 
 
 
 # TLS
@@ -40,7 +40,7 @@ smtpd_tls_exclude_ciphers = aNULL, LOW, EXP, MEDIUM, ADH, AECDH, MD5, DSS, ECDSA
 
 smtp_tls_CApath=/etc/ssl/certs
 smtp_tls_security_level = may
-smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtp_tls_session_cache_database = lmdb:${data_directory}/smtp_scache
 smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 smtp_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 

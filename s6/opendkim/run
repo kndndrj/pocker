@@ -1,4 +1,4 @@
 #!/command/execlineb -P
 
 # Pipe stderr to stdout and add prefix
-pipeline { fdmove -c 2 1 /usr/sbin/opendkim -f } sed --unbuffered "s/^/\[opendkim\]: /g"
+pipeline { fdmove -c 2 1 /usr/sbin/opendkim -f -x /etc/opendkim.conf } sed -e "s/^/\[opendkim\]: /g"

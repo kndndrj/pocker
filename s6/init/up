@@ -1,4 +1,4 @@
 #!/command/execlineb -P
 
 # Pipe stderr to stdout and add prefix
-pipeline { fdmove -c 2 1 /etc/s6-overlay/s6-rc.d/init/up.sh } sed --unbuffered "s/^/\[init\]: /g"
+pipeline { fdmove -c 2 1 /etc/s6-overlay/s6-rc.d/init/up.sh } sed -e "s/^/\[init\]: /g"

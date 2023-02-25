@@ -1,28 +1,44 @@
 #
 # Base Image
 #
-FROM debian:11-slim as base
+FROM alpine:latest as base
 ARG S6_OVERLAY_VERSION=3.1.4.1
-ARG TARGETPLATFORM
+ARG TARGETPLATFORM=linux/amd64
 
 # Update/upgrade and install packages
-RUN apt-get update -y \
- && DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
+RUN apk add --update-cache --no-cache \
         postfix \
         postfix-pcre \
-        dovecot-imapd \
-        dovecot-sieve \
+        dovecot \
+        dovecot-pigeonhole-plugin \
         spamassassin \
-        spamass-milter \
-        spamc \
+        spamassassin-client \
         opendkim \
-        opendkim-tools \
+        opendkim-utils \
         opendmarc \
-        gettext-base \
-        xz-utils \
+        gettext \
         inotify-tools \
-        ca-certificates \
+        libmilter-dev \
+	gpg-agent \
         curl
+
+# Compile spamass-milter
+RUN apk --no-cache add --virtual .fetch-deps \
+        libstdc++ \
+	libgcc \
+        autoconf \
+        automake \
+        build-base \
+ && curl -sfLo master.tar.gz https://github.com/andybalholm/spamass-milter/archive/master.tar.gz \
+ && tar -xvf master.tar.gz \
+ && cd spamass-milter-master \
+ && ./autogen.sh \
+ && make \
+ && make install \
+ && cd .. \
+ && rm -rf spamass-milter-master master.tar.gz \
+ && apk del .fetch-deps \
+ && adduser -D spamass-milter
 
 # Install s6-overlay
 RUN case ${TARGETPLATFORM} in \
@@ -46,6 +62,9 @@ RUN mkdir -p \
         /var/lib/dovecot/sieve \
  && chown -R opendkim:opendkim /etc/opendkim
 
+RUN mkdir -p /usr/share/publicsuffix \
+ && curl -sfLo /usr/share/publicsuffix/public_suffix_list.dat https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat
+
 # Copy mail services configs (move them to their places with init service)
 COPY ./config/ /etc/mailconfigs/
 
@@ -58,9 +77,10 @@ ENTRYPOINT ["/init"]
 #
 FROM base AS dashboard
 ARG SHELL2HTTP_VERSION=1.15.0
+ARG TARGETPLATFORM=linux/amd64
 
 # Create a user for auth
-RUN useradd auth_checker
+RUN adduser -D auth_checker
 
 # Make icons directory
 RUN mkdir -p /icons
