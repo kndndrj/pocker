@@ -54,17 +54,12 @@ RUN case ${TARGETPLATFORM} in \
  && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
  && tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
 
-# Copy s6 service scripts
-COPY ./s6/ /etc/s6-overlay/s6-rc.d/
-
-# make required directories
-RUN mkdir -p \
-        /etc/opendkim/keys \
-        /var/lib/dovecot/sieve \
- && chown -R opendkim:opendkim /etc/opendkim
-
+# Install the public suffix list
 RUN mkdir -p /usr/share/publicsuffix \
  && curl -sfLo /usr/share/publicsuffix/public_suffix_list.dat https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat
+
+# Copy s6 service scripts
+COPY ./s6/ /etc/s6-overlay/s6-rc.d/
 
 # Copy mail services configs (move them to their places with init service)
 COPY ./config/ /etc/mailconfigs/

@@ -26,7 +26,6 @@ echo "info: Templating html files"
 
 export POCKER_PAGE_TITLE
 
-# shellcheck disable=SC2016 # we don't want these variables to expand
 TEMP="$(mktemp)"
 # shellcheck disable=SC2016 # we don't want these variables to expand
 envsubst '$POCKER_PAGE_TITLE' < /opt/dashboard/index.html > "$TEMP"

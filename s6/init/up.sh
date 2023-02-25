@@ -13,7 +13,14 @@ fi
 ## PRESETS                       ##
 ###################################
 USERFILE_DIR="/etc/userfiles"
+KEYS_DIR="/etc/opendkim/keys"
+SIEVE_DIR="/var/lib/dovecot/sieve"
+MAIL_DIR="/var/mail"
 
+mkdir -p "$USERFILE_DIR"
+mkdir -p "$KEYS_DIR"
+mkdir -p "$SIEVE_DIR"
+mkdir -p "$MAIL_DIR"
 
 ###################################
 ## USER FILES (IF PROVIDED)      ##
@@ -42,9 +49,9 @@ done
 ###################################
 ## KEY GENERATION                ##
 ###################################
-if [ ! -f /etc/opendkim/keys/"$POCKER_SUBDOMAIN".private ]; then
+if [ ! -f "$KEYS_DIR"/"$POCKER_SUBDOMAIN".private ]; then
     echo "info: Opendkim keys for $POCKER_SUBDOMAIN not found. Generating new ones."
-    opendkim-genkey -D /etc/opendkim/keys -d "$POCKER_DOMAIN" -s "$POCKER_SUBDOMAIN"
+    opendkim-genkey -D "$KEYS_DIR" -d "$POCKER_DOMAIN" -s "$POCKER_SUBDOMAIN"
 fi
 
 
@@ -52,23 +59,23 @@ fi
 ## OWNERSHIP / PERMISSIONS       ##
 ###################################
 # chown user's mail to the user
-EXISTING_MAIL_USERS="$(ls /var/mail)"
+EXISTING_MAIL_USERS="$(ls "$MAIL_DIR")"
 
 for u in $EXISTING_MAIL_USERS; do
     echo "info: configuring mail permissions for user: \"$u\""
-    chown -R "$u:$u" "/var/mail/$u"
+    chown -R "$u:$u" "$MAIL_DIR/$u"
     mkdir -p "/home/$u"
     chown -R "$u:$u" "/home/$u"
 done
 
 # chown mail directory to mail
-echo "info: Changing ownership of /var/mail"
+echo "info: Changing ownership of $MAIL_DIR"
 
 if ! ( \
-chgrp mail /var/mail && \
-chmod 2775 /var/mail \
+chgrp mail "$MAIL_DIR" && \
+chmod 2775 "$MAIL_DIR" \
 ); then
-    echo "error: Could not change ownership/permissions of /var/mail. Make sure you don't have \":ro\" mount option set!"
+    echo "error: Could not change ownership/permissions of $MAIL_DIR. Make sure you don't have \":ro\" mount option set!"
     exit 1
 fi
 
@@ -76,8 +83,8 @@ fi
 echo "info: Changing ownership of dkim keys"
 
 if ! ( \
-chown -R opendkim:opendkim /etc/opendkim/keys && \
-chmod 640 /etc/opendkim/keys/* \
+chown -R opendkim:opendkim "$KEYS_DIR" && \
+chmod 640 "$KEYS_DIR"/* \
 ); then
     echo "error: Could not change ownership/permissions of dkim keys. Make sure you don't have \":ro\" mount option set!"
     exit 1
@@ -97,13 +104,15 @@ for i in $POCKER_TRUSTED_PROXIES; do
     fi
     TRUSTED_PROXIES="$TRUSTED_PROXIES $IP"
 done
-# Strip whitespace
-TRUSTED_PROXIES="$(echo "$TRUSTED_PROXIES" | sed -e 's/^\s*//g; s/\s*$//g; s/\s\s*/ /g')"
 
 export POCKER_DOMAIN
 export POCKER_SUBDOMAIN
 export POCKER_MAIL_DOMAIN="$POCKER_SUBDOMAIN.$POCKER_DOMAIN"
 export POCKER_TRUSTED_PROXIES="$TRUSTED_PROXIES"
+export POCKER_USERFILE_DIR="$USERFILE_DIR"
+export POCKER_KEYS_DIR="$KEYS_DIR"
+export POCKER_SIEVE_DIR="$SIEVE_DIR"
+export POCKER_MAIL_DIR="$MAIL_DIR"
 
 # Template the list of files
 for i in \
@@ -112,7 +121,7 @@ for i in \
 "/etc/mailconfigs/postfix/header_checks:/etc/postfix/header_checks" \
 \
 "/etc/mailconfigs/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf" \
-"/etc/mailconfigs/dovecot/default.sieve:/var/lib/dovecot/sieve/default.sieve" \
+"/etc/mailconfigs/dovecot/default.sieve:"$SIEVE_DIR"/default.sieve" \
 \
 "/etc/mailconfigs/opendkim/opendkim.conf:/etc/opendkim.conf" \
 "/etc/mailconfigs/opendkim/keytable:/etc/opendkim/keytable" \
@@ -126,7 +135,7 @@ for i in \
 
     mkdir -p "$(dirname "$destination")"
     # shellcheck disable=SC2016 # we don't want these variables to expand
-    envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_TRUSTED_PROXIES' < "$source" > "$destination"
+    envsubst '$POCKER_DOMAIN $POCKER_SUBDOMAIN $POCKER_MAIL_DOMAIN $POCKER_TRUSTED_PROXIES $POCKER_USERFILE_DIR $POCKER_KEYS_DIR $POCKER_SIEVE_DIR $POCKER_MAIL_DIR' < "$source" > "$destination"
 done
 
 
@@ -134,7 +143,19 @@ done
 ## MISC                          ##
 ###################################
 echo "info: Compiling sieve scripts"
-sievec /var/lib/dovecot/sieve/*
+sievec "$SIEVE_DIR"/*
 
 echo "info: Generating alias maps"
 newaliases -f /etc/aliases
+
+# write environment to file
+echo "\
+POCKER_DOMAIN=\"$POCKER_DOMAIN\"
+POCKER_SUBDOMAIN=\"$POCKER_SUBDOMAIN\"
+POCKER_MAIL_DOMAIN=\"$POCKER_MAIL_DOMAIN\"
+POCKER_TRUSTED_PROXIES=\"$POCKER_TRUSTED_PROXIES\"
+POCKER_USERFILE_DIR=\"$POCKER_USERFILE_DIR\"
+POCKER_KEYS_DIR=\"$POCKER_KEYS_DIR\"
+POCKER_SIEVE_DIR=\"$POCKER_SIEVE_DIR\"
+POCKER_MAIL_DIR=\"$POCKER_MAIL_DIR\"
+" > /env

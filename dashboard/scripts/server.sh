@@ -71,7 +71,7 @@ fn_remove () {
     rm -rf "$temp"
 
     # Remove user
-    rm -rf /var/mail/"${user:?}" /home/"${user:?}"
+    rm -rf "$POCKER_MAIL_DIR"/"${user:?}" /home/"${user:?}"
     if ! (deluser "$user"); then
         echo "error: could not remove user \"$user\""
         return 1
@@ -156,6 +156,8 @@ fn_format () {
         "$(dirname "$0")"/response.html
 }
 
+# Read env from file
+source /env
 
 # Parse response
 RESPONSE="$(fn_parse_response 2>&1)"
