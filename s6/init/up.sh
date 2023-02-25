@@ -10,14 +10,33 @@ fi
 
 
 ###################################
+## PRESETS                       ##
+###################################
+USERFILE_DIR="/etc/userfiles"
+
+
+###################################
 ## USER FILES (IF PROVIDED)      ##
 ###################################
 echo "info: configuring mounted userfiles"
-touch /etc/passwd /etc/shadow /etc/group /etc/aliases
-[ -f /etc/userfiles/passwd ]  && [ -s /etc/userfiles/passwd ]  && cat /etc/userfiles/passwd > /etc/passwd
-[ -f /etc/userfiles/shadow ]  && [ -s /etc/userfiles/shadow ]  && cat /etc/userfiles/shadow > /etc/shadow
-[ -f /etc/userfiles/group ]   && [ -s /etc/userfiles/group ]   && cat /etc/userfiles/group > /etc/group
-[ -f /etc/userfiles/aliases ] && [ -s /etc/userfiles/aliases ] && cat /etc/userfiles/aliases > /etc/aliases
+
+for i in \
+"$USERFILE_DIR/passwd:/etc/passwd" \
+"$USERFILE_DIR/shadow:/etc/shadow" \
+"$USERFILE_DIR/group:/etc/group" \
+"$USERFILE_DIR/aliases:/etc/aliases" \
+; do
+    source="${i%%:*}"
+    destination="${i#*:}"
+
+    touch "$destination"
+    cp "$destination" "$destination".old
+    rm "$destination"
+
+    [ ! -s "$source" ] && cat "$destination".old > "$source"
+
+    ln -s "$source" "$destination"
+done
 
 
 ###################################

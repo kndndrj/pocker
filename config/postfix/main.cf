@@ -65,8 +65,8 @@ postscreen_greet_action = enforce
 # Milters
 milter_default_action = accept
 milter_protocol = 6
-# In order: opendkim,spamass-milter,opendmarc
-smtpd_milters = inet:127.0.0.1:8891,unix:spamass/spamass.sock,inet:127.0.0.1:8893
+# In order: opendkim,opendmarc,spamass-milter
+smtpd_milters = inet:127.0.0.1:8891,inet:127.0.0.1:8893,unix:spamass/spamass.sock
 non_smtpd_milters = $smtpd_milters
 
 # vim:ft=pfmain

@@ -13,19 +13,18 @@ RUN apk add --update-cache --no-cache \
         dovecot-pigeonhole-plugin \
         spamassassin \
         spamassassin-client \
+        gpg-agent \
         opendkim \
         opendkim-utils \
         opendmarc \
         gettext \
-        inotify-tools \
-        libmilter-dev \
-        gpg-agent \
     # dashboard:
         curl \
         util-linux-login
 
 # Compile spamass-milter
 RUN apk --no-cache add --virtual .fetch-deps \
+        libmilter-dev \
         libstdc++ \
         libgcc \
         autoconf \
@@ -40,7 +39,7 @@ RUN apk --no-cache add --virtual .fetch-deps \
  && cd .. \
  && rm -rf spamass-milter-master master.tar.gz \
  && apk del .fetch-deps \
- && adduser -D spamass-milter
+ && adduser -u 111 -D spamass-milter
 
 # Install s6-overlay
 RUN case ${TARGETPLATFORM} in \
@@ -82,7 +81,7 @@ ARG SHELL2HTTP_VERSION=1.15.0
 ARG TARGETPLATFORM=linux/amd64
 
 # Create a user for auth
-RUN adduser -D auth_checker
+RUN adduser -u 112 -D auth_checker
 
 # Make icons directory
 RUN mkdir -p /icons

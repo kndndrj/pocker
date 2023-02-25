@@ -12,12 +12,17 @@ fn_create () {
         return 1
     fi
     # Add user
-    if ! (adduser -D -G mail "$user"); then
+    if ! (adduser -D "$user"); then
         echo "error: could not create user \"$user\""
         return 1
     fi
     # Add password
-    if ! (echo "$user:$pass" | chpasswd > /dev/null); then
+    if ! (echo "$user:$pass" | chpasswd > /dev/null 2&>1); then
+        echo "error: could not create user \"$user\""
+        return 1
+    fi
+    # Add user to "mail" group
+    if ! (adduser "$user" mail); then
         echo "error: could not create user \"$user\""
         return 1
     fi
@@ -42,7 +47,7 @@ fn_change_pw () {
     rm -rf "$temp"
 
     # Change password
-    if ! (echo "$user:$pass_new" | chpasswd > /dev/null); then
+    if ! (echo "$user:$pass_new" | chpasswd > /dev/null 2&>1); then
         echo "error: could not create user \"$user\""
         return 1
     fi
