@@ -1,6 +1,6 @@
 # Pocker
 
-Mailserver in Docker
+Lightweight Mailserver in Docker
 
 ## Overview
 
@@ -11,11 +11,21 @@ The server part is a docker image made of multiple services supervized by s6. It
 - SpamAssassin
 - OpenDKIM
 - OpenDMARC
-- UI dashboard (optionally)
+- Web-UI dashboard (optional)
 
 ## Quick Start
 
-Check the complete [docker-compose.yml](./examples/docker-compose-complete.yml) for a complete example behind Traefik reverse proxy.
+Check out the example [docker-compose.yml](examples/docker-compose.yml) for a full setup behind Traefik
+
+## Versioning
+
+- `latest` - for the latest version
+- `branch` - for the latest version on that branch
+- `sha1short` - exact commit
+- `v1.2.3` - exact release version (stable)
+- `v1.2` - major release version (stable)
+
+For a variant with dashboard append "`-dashboard`" to one of the above.
 
 ## Configuration
 
@@ -25,7 +35,8 @@ Check the complete [docker-compose.yml](./examples/docker-compose-complete.yml) 
 - `POCKER_DOMAIN` - your mail domain - example: `example.com`
 - `POCKER_TRUSTED_PROXIES` - space separated list of trusted proxy ips or hostnames (usually a container name of proxy container on the same docker network) - example: `192.168.0.123 traefik haproxy`
 
-`-dashboard` only:
+`*-dashboard` only:
+
 - `POCKER_PAGE_TITLE` - title of the optional dashboard - example: `Pocker Dashboard`
 - `POCKER_LOGO_URL` - link to the logo image of your choice - example: `https://some.website.com/image.png`
 
@@ -42,7 +53,7 @@ For more information refer to the example [`docker-compose.yml`](examples/docker
 
 ## Management
 
-If you chose to use the `-dashboard` variant the image, there is a web-UI running on `localhost:8080/dashboard`.
+If you chose to use the `*-dashboard` variant the image, there is a web-UI running on `localhost:8080/dashboard`.
 
 If you don't want a dashboard, just use the basic tools to do the job. e.g.:
 
@@ -52,13 +63,3 @@ docker exec -it useradd -m -G mail john
 # add password to the user
 docker exec -it passwd john
 ```
-
-## Versioning
-
-- `latest` - for the latest version
-- `branch` - for the latest version on that branch
-- `sha-1-short` - short commit hash
-- `v1.2.3` - exact release version (stable)
-- `v1.2` - major release version (stable)
-
-For a variant with dashboard append `-dashboard` to one of the above.
