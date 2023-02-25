@@ -69,7 +69,7 @@ RUN mkdir -p /icons
 RUN case ${TARGETPLATFORM} in \
         "linux/amd64")   SHELL2HTTP_ARCH=amd64   ;; \
         "linux/arm64")   SHELL2HTTP_ARCH=arm64   ;; \
-        "linux/arm/v7")  SHELL2HTTP_ARCH=armv6     ;; \
+        "linux/arm/v7")  SHELL2HTTP_ARCH=armv6   ;; \
         "linux/arm/v6")  SHELL2HTTP_ARCH=armv6   ;; \
         "linux/386")     SHELL2HTTP_ARCH=386     ;; \
     esac \
