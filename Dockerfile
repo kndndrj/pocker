@@ -6,8 +6,11 @@ FROM alpine:latest as builder
 # Install requirements
 RUN apk add --no-cache \
         rust \
-        cargo
+        cargo \
+        git
 
+# Install spamassassin-milter
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 RUN mkdir -p /spm \
  && cargo install --root=/spm --locked spamassassin-milter
 
