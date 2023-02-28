@@ -1,4 +1,18 @@
 #
+# Builder
+#
+FROM alpine:latest as builder
+
+# Install requirements
+RUN apk add --no-cache \
+        rust \
+        cargo
+
+RUN mkdir -p /spm \
+ && cargo install --root=/spm --locked spamassassin-milter
+
+
+#
 # Base Image
 #
 FROM alpine:latest as base
@@ -19,24 +33,8 @@ RUN apk add --no-cache \
         opendmarc \
         gettext
 
-# Compile spamass-milter
-RUN apk --no-cache add --virtual .fetch-deps \
-        libmilter-dev \
-        libstdc++ \
-        libgcc \
-        autoconf \
-        automake \
-        build-base \
- && wget -q https://github.com/andybalholm/spamass-milter/archive/master.tar.gz -O master.tar.gz \
- && tar -xvf master.tar.gz \
- && cd spamass-milter-master \
- && ./autogen.sh \
- && make \
- && make install \
- && cd .. \
- && rm -rf spamass-milter-master master.tar.gz \
- && apk del .fetch-deps \
- && adduser -u 111 -D spamass-milter
+# Install spamassassin-milter
+COPY --from=builder /spm/bin/spamassassin-milter /usr/local/bin/spamassassin-milter
 
 # Install s6-overlay
 RUN case ${TARGETPLATFORM} in \

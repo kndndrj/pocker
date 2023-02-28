@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+
+# Pipe stderr to stdout and add prefix
+pipeline { fdmove -c 2 1 /usr/local/bin/spamassassin-milter inet:localhost:3000 } sed -e "s/^/\[spamassassin-milter\]: /g"
